@@ -96,33 +96,41 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
   }, []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="flex flex-col gap-4">
-        <input 
-          type="file" 
-          accept=".pdf" 
-          onChange={handleFileChange}
-          className="w-full file:mr-4 file:py-2 file:px-4 
-            file:rounded file:border-0
-            file:text-[#101010] file:bg-[#3dcab1]/10
-            hover:file:bg-[#3dcab1]/20
-            file:cursor-pointer
-            text-[#101010]" 
-        />
+    <div className="w-full max-w-xl mx-auto">
+      <div className="flex flex-col gap-6">
+        <div className="relative group">
+          <input 
+            type="file" 
+            accept=".pdf" 
+            onChange={handleFileChange}
+            className="w-full file:mr-4 file:py-3 file:px-6 
+              file:rounded-lg file:border-0
+              file:text-[#101010] file:bg-[#3dcab1]/10
+              hover:file:bg-[#3dcab1]/20
+              file:cursor-pointer file:font-medium
+              file:transition-all file:duration-200
+              text-[#101010] rounded-lg
+              border-2 border-dashed border-gray-300
+              hover:border-[#3dcab1] transition-all duration-200
+              focus:outline-none focus:border-[#3dcab1]" 
+          />
+        </div>
         <div className="flex justify-center gap-4">
           <button 
             onClick={handleAnalyze} 
             disabled={loading}
-            className="w-40 px-4 py-2 bg-[#3dcab1] text-[#fefefe] rounded 
+            className="w-48 px-6 py-3 bg-[#3dcab1] text-[#fefefe] rounded-lg
               disabled:opacity-50 hover:bg-[#3dcab1]/90 
-              transition-colors duration-200"
+              transition-all duration-200 font-medium shadow-sm
+              hover:shadow-md disabled:hover:shadow-none"
           >
             {loading ? "In corso..." : "Carica & Analizza"}
           </button>
           <button 
             onClick={handleRemove}
-            className="w-40 px-4 py-2 bg-[#101010] text-[#fefefe] rounded 
-              hover:bg-[#101010]/90 transition-colors duration-200"
+            className="w-48 px-6 py-3 bg-[#101010] text-[#fefefe] rounded-lg
+              hover:bg-[#101010]/90 transition-all duration-200
+              font-medium shadow-sm hover:shadow-md"
           >
             Rimuovi
           </button>
