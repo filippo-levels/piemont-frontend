@@ -1,14 +1,23 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
+import React, { useState, Dispatch, SetStateAction, useRef } from "react";
 import axios from "axios";
 
 interface FileUploaderProps {
   setLogs: Dispatch<SetStateAction<string[]>>;
   setJsonResult: (data: any) => void;
+  setElapsedTime: (time: number) => void;
 }
 
-export default function FileUploader({ setLogs, setJsonResult }: FileUploaderProps) {
+export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }: FileUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  const updateElapsedTime = () => {
+    const currentTime = Date.now();
+    const elapsed = (currentTime - startTimeRef.current) / 1000;
+    setElapsedTime(elapsed);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -16,6 +25,7 @@ export default function FileUploader({ setLogs, setJsonResult }: FileUploaderPro
       setFile(selectedFile);
       setLogs((prev: string[]) => [...prev, `File selezionato: ${selectedFile.name}`]);
       setJsonResult(null);
+      setElapsedTime(0);
     }
   };
 
@@ -25,7 +35,12 @@ export default function FileUploader({ setLogs, setJsonResult }: FileUploaderPro
       return;
     }
     setLoading(true);
+    setElapsedTime(0);
     setLogs((prev: string[]) => [...prev, "Caricamento e analisi in corso..."]);
+
+    startTimeRef.current = Date.now();
+    // Avvia il timer che aggiorna ogni 100ms
+    timerRef.current = setInterval(updateElapsedTime, 100);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -36,16 +51,26 @@ export default function FileUploader({ setLogs, setJsonResult }: FileUploaderPro
         formData
       );
       const { data, logs } = response.data;
+      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
 
       if (Array.isArray(logs)) {
         setLogs((prev: string[]) => [...prev, ...logs]);
       }
-      setLogs((prev: string[]) => [...prev, "Analisi completata con successo."]);
+      setLogs((prev: string[]) => [
+        ...prev, 
+        `Analisi completata con successo in ${timeElapsed.toFixed(2)} secondi.`
+      ]);
 
       setJsonResult(data);
     } catch (error: any) {
+      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
       setLogs((prev: string[]) => [...prev, `Errore: ${error.message}`]);
     } finally {
+      // Ferma il timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       setLoading(false);
     }
   };
@@ -54,7 +79,21 @@ export default function FileUploader({ setLogs, setJsonResult }: FileUploaderPro
     setFile(null);
     setLogs([]);
     setJsonResult(null);
+    setElapsedTime(0);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   };
+
+  // Cleanup quando il componente viene smontato
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
