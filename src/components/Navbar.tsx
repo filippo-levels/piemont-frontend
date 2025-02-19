@@ -8,8 +8,8 @@ export default function Navbar() {
           <Image
             src="/images/logo.png"
             alt="Logo"
-            width={400}
-            height={400}
+            width={300}
+            height={300}
             className="object-contain"
           />
         </div>

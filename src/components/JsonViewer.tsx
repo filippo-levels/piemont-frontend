@@ -1,11 +1,7 @@
 "use client";
 
 import React from "react";
-import dynamic from "next/dynamic";
-
-const ReactJson = dynamic(() => import("react-json-view"), {
-  ssr: false,
-});
+import CriteriViewer from "./CriteriViewer";
 
 interface Props {
   data: any;
@@ -13,10 +9,17 @@ interface Props {
 
 export default function JsonViewer({ data }: Props) {
   if (!data) return null;
+
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h3 className="text-xl mb-2">Risultato JSON</h3>
-      <ReactJson src={data} theme="monokai" />
+    <div className="space-y-8">
+      <CriteriViewer criteri={data.criteri} />
+      
+      <div className="bg-white p-4 rounded shadow">
+        <h3 className="text-xl mb-2">Visualizzazione JSON</h3>
+        <pre className="whitespace-pre-wrap overflow-auto max-h-[800px]">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      </div>
     </div>
   );
 }

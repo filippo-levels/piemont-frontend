@@ -13,11 +13,15 @@ export default function Home() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-7xl mx-auto p-6">
-        <FileUploader setLogs={setLogs} setJsonResult={setJsonResult} />
-        <div className="mt-6">
-          <LogViewer logs={logs} />
+        <div className="flex gap-6 mb-6">
+          <div className="w-1/2">
+            <FileUploader setLogs={setLogs} setJsonResult={setJsonResult} />
+          </div>
+          <div className="w-1/2">
+            <LogViewer logs={logs} />
+          </div>
         </div>
-        <div className="mt-6">
+        <div>
           <JsonViewer data={jsonResult} />
         </div>
       </div>
