@@ -12,7 +12,7 @@ export default function JsonViewer({ data }: Props) {
 
   return (
     <div className="space-y-8">
-      <CriteriViewer criteri={data.criteri} />
+      
       
       <div className="bg-white p-4 rounded shadow">
         <h3 className="text-xl mb-2">Visualizzazione JSON</h3>

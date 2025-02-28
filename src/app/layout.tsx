@@ -5,7 +5,7 @@ import { Inter, Lexend } from "next/font/google";
 
 import { cn } from "@/lib/utils";
 
-const fontSans = Inter({
+const fontSans = Lexend({
   variable: "--font-sans",
   subsets: ["latin"],
 });

@@ -12,6 +12,7 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateElapsedTime = () => {
     const currentTime = Date.now();
@@ -23,7 +24,7 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setLogs((prev: string[]) => [...prev, `File selezionato: ${selectedFile.name}`]);
+      setLogs((prev: string[]) => [...prev, `📄 File selezionato: ${selectedFile.name}`]);
       setJsonResult(null);
       setElapsedTime(0);
     }
@@ -31,62 +32,65 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
 
   const handleAnalyze = async () => {
     if (!file) {
-      setLogs((prev: string[]) => [...prev, "Nessun file selezionato"]);
-      return;
-    }
-    setLoading(true);
-    setElapsedTime(0);
-    setLogs((prev: string[]) => [...prev, "Caricamento e analisi in corso..."]);
-
-    startTimeRef.current = Date.now();
-    // Avvia il timer che aggiorna ogni 100ms
-    timerRef.current = setInterval(updateElapsedTime, 100);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/full_analyze`,
-        formData
-      );
-      const { data, logs } = response.data;
-      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
-
-      if (Array.isArray(logs)) {
-        setLogs((prev: string[]) => [...prev, ...logs]);
+          setLogs((prev: string[]) => [...prev, "⚠️ Nessun file selezionato"]);
+          return;
       }
-      setLogs((prev: string[]) => [
-        ...prev, 
-        `Analisi completata con successo in ${timeElapsed.toFixed(2)} secondi.`
-      ]);
+      setLoading(true);
+      setElapsedTime(0);
+      setLogs((prev: string[]) => [...prev, "⌛ Caricamento e analisi in corso..."]);
 
-      setJsonResult(data);
-    } catch (error: any) {
-      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
-      setLogs((prev: string[]) => [...prev, `Errore: ${error.message}`]);
-    } finally {
-      // Ferma il timer
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      startTimeRef.current = Date.now();
+      timerRef.current = setInterval(updateElapsedTime, 100);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+          const response = await axios.post(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/full_analyze`,
+              formData
+          );
+
+          // Estrai il criteria_tree dalla chiave "data" della risposta
+          const data = response.data?.data;
+          
+          if (data) {
+              setJsonResult(data);
+              const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
+              setLogs((prev: string[]) => [
+                  ...prev, 
+                  `✅ Analisi completata con successo in ${timeElapsed.toFixed(2)} secondi.`,
+              ]);
+          } else {
+              setLogs((prev: string[]) => [...prev, "⚠️ Nessun dato restituito dall'API."]);
+          }
+          
+      } catch (error: any) {
+          const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
+          setLogs((prev: string[]) => [...prev, `❌ Errore: ${error.message}`]);
+      } finally {
+          if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+          }
+          setLoading(false);
       }
-      setLoading(false);
-    }
   };
 
   const handleRemove = () => {
     setFile(null);
-    setLogs([]);
+    setLogs((prev: string[]) => [...prev, "🗑️ File rimosso"]);
     setJsonResult(null);
     setElapsedTime(0);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
-  // Cleanup quando il componente viene smontato
   React.useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -100,6 +104,7 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
       <div className="flex flex-col gap-6">
         <div className="relative group">
           <input 
+            ref={fileInputRef}
             type="file" 
             accept=".pdf" 
             onChange={handleFileChange}
@@ -122,9 +127,20 @@ export default function FileUploader({ setLogs, setJsonResult, setElapsedTime }:
             className="w-48 px-6 py-3 bg-[#3dcab1] text-[#fefefe] rounded-lg
               disabled:opacity-50 hover:bg-[#3dcab1]/90 
               transition-all duration-200 font-medium shadow-sm
-              hover:shadow-md disabled:hover:shadow-none"
+              hover:shadow-md disabled:hover:shadow-none
+              flex items-center justify-center gap-2"
           >
-            {loading ? "In corso..." : "Carica & Analizza"}
+            {loading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                In corso...
+              </>
+            ) : (
+              "Carica & Analizza"
+            )}
           </button>
           <button 
             onClick={handleRemove}

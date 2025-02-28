@@ -16,16 +16,11 @@ export default function Navbar() {
               />
             </a>
           </div>
-          <div className="absolute left-1/2 transform -translate-x-1/2 my-2"> {/* Aggiunto my-2 per il margine verticale */}
-            <a href="https://piemontecnica.com" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-              <Image
-                src="/images/logo-piemontecnica-solo-quad-trsp.png"
-                alt="Piemontecnica Logo"
-                width={60} 
-                height={60}
-                className="object-contain mt-1 mb-1" 
-              />
-            </a>
+          
+          <div className="flex-none">
+            <button className="outline outline-white text-white font-medium py-2 px-4 rounded-md transition duration-300">
+              Login
+            </button>
           </div>
         </div>
       </div>
