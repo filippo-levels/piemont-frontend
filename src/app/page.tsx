@@ -2,7 +2,7 @@
 import FileUploader from "@/components/FileUploader";
 import LogViewer from "@/components/LogViewer";
 import JsonViewer from "@/components/JsonViewer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import CriteriViewer from "@/components/CriteriViewer";
 import FileList from "@/components/FileList";
@@ -15,15 +15,6 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'upload' | 'gestionale'>('upload');
   
-  const searchParams = useSearchParams();
-  
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'upload' || tab === 'gestionale') {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navbar />
@@ -33,33 +24,9 @@ export default function Home() {
             Analizza un disciplinare di gara
           </h1>
           
-          {/* Tab Navigation */}
-          <div className="flex justify-center mt-6">
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              <button
-                type="button"
-                className={`px-6 py-3 text-lg font-medium rounded-l-lg ${
-                  activeTab === 'upload'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-                onClick={() => setActiveTab('upload')}
-              >
-                UPLOAD
-              </button>
-              <button
-                type="button"
-                className={`px-6 py-3 text-lg font-medium rounded-r-lg ${
-                  activeTab === 'gestionale'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-                onClick={() => setActiveTab('gestionale')}
-              >
-                GESTIONALE
-              </button>
-            </div>
-          </div>
+          <Suspense fallback={<div>Loading tab navigation...</div>}>
+            <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+          </Suspense>
         </div>
 
         {/* UPLOAD Section */}
@@ -93,9 +60,11 @@ export default function Home() {
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-semibold mb-4 text-gray-800">Disciplinari caricati</h2>
-              <FileList 
-                onError={(error) => setLogs(prev => [...prev, error])}
-              />
+              <Suspense fallback={<div>Loading...</div>}>
+                <FileList 
+                  onError={(error) => setLogs(prev => [...prev, error])}
+                />
+              </Suspense>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
@@ -106,6 +75,50 @@ export default function Home() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// TabNavigation component that uses useSearchParams
+function TabNavigation({ activeTab, setActiveTab }: { 
+  activeTab: 'upload' | 'gestionale', 
+  setActiveTab: (tab: 'upload' | 'gestionale') => void 
+}) {
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'upload' || tab === 'gestionale') {
+      setActiveTab(tab);
+    }
+  }, [searchParams, setActiveTab]);
+
+  return (
+    <div className="flex justify-center mt-6">
+      <div className="inline-flex rounded-md shadow-sm" role="group">
+        <button
+          type="button"
+          className={`px-6 py-3 text-lg font-medium rounded-l-lg ${
+            activeTab === 'upload'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+          onClick={() => setActiveTab('upload')}
+        >
+          UPLOAD
+        </button>
+        <button
+          type="button"
+          className={`px-6 py-3 text-lg font-medium rounded-r-lg ${
+            activeTab === 'gestionale'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+          onClick={() => setActiveTab('gestionale')}
+        >
+          GESTIONALE
+        </button>
       </div>
     </div>
   );
