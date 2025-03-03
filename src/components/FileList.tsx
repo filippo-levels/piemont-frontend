@@ -129,7 +129,7 @@ export default function FileList({ onError }: FileListProps) {
                   <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
                   </svg>
-                  <div className="text-gray-700 overflow-x-auto whitespace-nowrap max-w-[200px] hover:max-w-full transition-all duration-300">
+                  <div className="text-gray-700 break-all">
                     {file}
                   </div>
                 </div>

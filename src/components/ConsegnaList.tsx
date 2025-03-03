@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Folder, File, Home, ChevronRight, Eye, Download, ArrowLeft } from 'lucide-react';
+import { Folder, File, Home, ChevronRight, Eye, Download, ArrowLeft, Search } from 'lucide-react';
 
 interface ConsegnaListProps {
   onError?: (error: string) => void;
@@ -148,6 +148,7 @@ export default function ConsegnaList({ onError }: ConsegnaListProps) {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#3dcab1]"
               />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             </div>
             
             {currentPrefix && (
@@ -193,10 +194,12 @@ export default function ConsegnaList({ onError }: ConsegnaListProps) {
       ) : (
         <div className="p-4">
           {/* Sezione combinata per cartelle e file */}
-          <div className="overflow-y-auto pr-2" style={{ maxHeight: '500px' }}>
-            {filteredFolders.length === 0 && filteredFiles.length === 0 ? (
+          {filteredFolders.length === 0 && filteredFiles.length === 0 ? (
+            <div className="flex justify-center items-center h-32">
               <p className="text-gray-500 italic text-sm">Nessun elemento trovato</p>
-            ) : (
+            </div>
+          ) : (
+            <div className="overflow-y-auto pr-2" style={{ maxHeight: '500px' }}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {/* Prima mostriamo le cartelle */}
                 {filteredFolders.map((folder, index) => (
@@ -235,8 +238,8 @@ export default function ConsegnaList({ onError }: ConsegnaListProps) {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
