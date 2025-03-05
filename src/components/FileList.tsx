@@ -1,11 +1,13 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
 interface FileListProps {
   onError?: (error: string) => void;
+  setFile?: (file: File) => void;
+  setLogs?: Dispatch<SetStateAction<string[]>>;
 }
 
-export default function FileList({ onError }: FileListProps) {
+export default function FileList({ onError, setFile, setLogs }: FileListProps) {
   const [files, setFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,21 +53,47 @@ export default function FileList({ onError }: FileListProps) {
     }
   };
 
-  const handleUpload = (fileName: string) => {
-    // Qui puoi implementare la logica per caricare il file
-    console.log(`Caricamento del file: ${fileName}`);
-    // Esempio di funzione da implementare
-    // uploadFile(fileName);
+  const handleUpload = async (fileName: string) => {
+    try {
+      // Mostra un messaggio di caricamento
+      if (setLogs) {
+        setLogs(prev => [...prev, `⌛ Preparazione del file ${fileName} in corso...`]);
+      }
+      
+      // Ottieni l'URL temporaneo dall'API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/get_disciplinare_url/${fileName}`);
+      
+      if (!response.ok) {
+        throw new Error(`Errore nel recupero del file: ${response.statusText}`);
+      }
+      
+      // Ottieni i dati dalla risposta
+      const data = await response.json();
+      
+      // Salva i dati nel localStorage per essere recuperati dal FileUploader
+      localStorage.setItem('selectedDisciplinare', JSON.stringify({
+        url: data.url,
+        filename: data.filename,
+        contentType: data.content_type,
+        size: data.size
+      }));
+      
+      // Cambia tab per tornare alla sezione di upload
+      window.location.href = '/?tab=upload';
+      
+    } catch (error) {
+      console.error('Errore durante la preparazione del file:', error);
+      if (onError) {
+        onError(`Errore durante la preparazione del file: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+      }
+    }
   };
-
-
 
   const handleView = (fileName: string) => {
     // Qui puoi implementare la logica per visualizzare il file
     console.log(`Visualizzazione del file: ${fileName}`);
     window.open(`http://localhost:8000/api/view_file/${fileName}`, '_blank');
   };
-
 
   return (
     <div className="space-y-4">

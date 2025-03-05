@@ -2,7 +2,7 @@
 import FileUploader from "@/components/FileUploader";
 import LogViewer from "@/components/LogViewer";
 import JsonViewer from "@/components/JsonViewer";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import CriteriViewer from "@/components/CriteriViewer";
 import FileList from "@/components/FileList";
@@ -14,6 +14,23 @@ export default function Home() {
   const [jsonResult, setJsonResult] = useState<any>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'upload' | 'gestionale'>('upload');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileUploaderRef = useRef(null);
+  
+  // Funzione per impostare il file selezionato
+  const handleSetFile = (file: File) => {
+    setSelectedFile(file);
+    // Cambia tab per tornare alla sezione di upload
+    setActiveTab('upload');
+  };
+  
+  // Effetto per aggiornare il FileUploader quando viene selezionato un file
+  useEffect(() => {
+    if (selectedFile && fileUploaderRef.current) {
+      // @ts-ignore - Accesso al metodo esposto
+      fileUploaderRef.current.setFileFromExternal(selectedFile);
+    }
+  }, [selectedFile]);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -33,8 +50,8 @@ export default function Home() {
         {activeTab === 'upload' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Carica un nuovo disciplinare</h2>
               <FileUploader 
+                ref={fileUploaderRef}
                 setLogs={setLogs} 
                 setJsonResult={setJsonResult} 
                 setElapsedTime={setElapsedTime}
@@ -42,7 +59,6 @@ export default function Home() {
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Log di elaborazione</h2>
               <LogViewer logs={logs} elapsedTime={elapsedTime} />
             </div>
 
@@ -63,6 +79,8 @@ export default function Home() {
               <Suspense fallback={<div>Loading...</div>}>
                 <FileList 
                   onError={(error) => setLogs(prev => [...prev, error])}
+                  setFile={handleSetFile}
+                  setLogs={setLogs}
                 />
               </Suspense>
             </div>
@@ -94,32 +112,6 @@ function TabNavigation({ activeTab, setActiveTab }: {
     }
   }, [searchParams, setActiveTab]);
 
-  return (
-    <div className="flex justify-center mt-6">
-      <div className="inline-flex rounded-md shadow-sm" role="group">
-        <button
-          type="button"
-          className={`px-6 py-3 text-lg font-medium rounded-l-lg ${
-            activeTab === 'upload'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-          onClick={() => setActiveTab('upload')}
-        >
-          UPLOAD
-        </button>
-        <button
-          type="button"
-          className={`px-6 py-3 text-lg font-medium rounded-r-lg ${
-            activeTab === 'gestionale'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-          onClick={() => setActiveTab('gestionale')}
-        >
-          GESTIONALE
-        </button>
-      </div>
-    </div>
-  );
+  // Removed the tab buttons, but keeping the component for URL parameter handling
+  return null;
 }
