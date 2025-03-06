@@ -4,20 +4,28 @@ import { Folder, File, Home, ChevronRight, Eye, Download, ArrowLeft, Search } fr
 
 interface ConsegnaListProps {
   onError?: (error: string) => void;
+  initialSearchTerm?: string;
 }
 
-export default function ConsegnaList({ onError }: ConsegnaListProps) {
+export default function ConsegnaList({ onError, initialSearchTerm = '' }: ConsegnaListProps) {
   const [folders, setFolders] = useState<string[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState('');
   const [breadcrumbs, setBreadcrumbs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
 
   useEffect(() => {
     // Al primo render, carichiamo la "root" di consegna (prefix vuoto)
     fetchConsegnaContent('');
   }, []);
+
+  // Aggiorniamo il termine di ricerca quando cambia initialSearchTerm
+  useEffect(() => {
+    if (initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
+    }
+  }, [initialSearchTerm]);
 
   /**
    * Funzione per chiamare il backend e ottenere folders e files

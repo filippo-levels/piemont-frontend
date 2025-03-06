@@ -3,14 +3,26 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="border-b bg-black">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
             <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer">
               <Image
                 src="/images/logo levels.png"
-                alt="LevelsTech Logo"
+                alt="Levels Logo"
+                width={100}
+                height={100}
+                className="object-contain"
+              />
+            </a>
+          </div>
+
+          <div className="flex-shrink-0">
+            <a href="https://piemontecnica.com/#" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/images/logo-piemontecnica-solo-quad-trsp.png"
+                alt="Piemontecnica Logo"
                 width={100}
                 height={100}
                 className="object-contain"

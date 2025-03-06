@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Inter, Lexend } from "next/font/google";
 
 import { cn } from "@/lib/utils";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const fontSans = Lexend({
   variable: "--font-sans",
@@ -29,12 +31,16 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "min-h-screen font-sans antialiased",
+          "min-h-screen font-sans antialiased flex flex-col",
           fontSans.variable,
           fontHeading.variable
         )}
       >
-        {children}
+        <Navbar />
+        <main className="flex-grow pt-20">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
