@@ -5,9 +5,10 @@ import { Folder, File, Home, ChevronRight, Eye, Download, ArrowLeft, Search } fr
 interface ConsegnaListProps {
   onError?: (error: string) => void;
   initialSearchTerm?: string;
+  singleColumn?: boolean;
 }
 
-export default function ConsegnaList({ onError, initialSearchTerm = '' }: ConsegnaListProps) {
+export default function ConsegnaList({ onError, initialSearchTerm = '', singleColumn = false }: ConsegnaListProps) {
   const [folders, setFolders] = useState<string[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState('');
@@ -69,6 +70,8 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
    */
   const navigateToFolder = (folderName: string) => {
     const newPrefix = currentPrefix ? `${currentPrefix}/${folderName}` : folderName;
+    // Reset del termine di ricerca quando si naviga in una cartella
+    setSearchTerm('');
     fetchConsegnaContent(newPrefix);
   };
 
@@ -76,6 +79,7 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
    * Reset alla root (prefix vuoto)
    */
   const resetToRoot = () => {
+    setSearchTerm('');
     fetchConsegnaContent('');
   };
 
@@ -88,6 +92,7 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
       return;
     }
     
+    setSearchTerm('');
     const newPrefix = breadcrumbs.slice(0, index + 1).join('/');
     fetchConsegnaContent(newPrefix);
   };
@@ -98,6 +103,7 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
   const navigateUp = () => {
     if (breadcrumbs.length === 0) return;
     
+    setSearchTerm('');
     if (breadcrumbs.length === 1) {
       resetToRoot();
     } else {
@@ -208,7 +214,7 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
             </div>
           ) : (
             <div className="overflow-y-auto pr-2" style={{ maxHeight: '500px' }}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-2`}>
                 {/* Prima mostriamo le cartelle */}
                 {filteredFolders.map((folder, index) => (
                   <div
@@ -226,22 +232,18 @@ export default function ConsegnaList({ onError, initialSearchTerm = '' }: Conseg
                 {filteredFiles.map((file, index) => (
                   <div
                     key={`file-${index}`}
-                    className="flex items-center justify-between p-2 border rounded-md hover:bg-gray-50 transition-colors"
+                    className="flex items-center p-2 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => isPDF(file) && openFile(file)}
                   >
-                    <div className="flex items-center space-x-2 truncate">
+                    <div className="flex items-center space-x-2 truncate flex-grow">
                       {getFileIcon(file)}
-                      <span className="truncate text-sm" title={file}>{file}</span>
+                      <span className={`truncate text-sm ${isPDF(file) ? 'text-blue-600 hover:underline' : ''}`} title={file}>
+                        {file}
+                      </span>
                     </div>
                     
-                    {isPDF(file) && (
-                      <button
-                        onClick={() => openFile(file)}
-                        className="flex items-center space-x-1 px-2 py-1 text-xs bg-[#3dcab1] text-white rounded hover:bg-[#33ab97] transition-colors ml-2"
-                        title="Visualizza PDF"
-                      >
-                        <Eye size={14} />
-                        <span>Visualizza</span>
-                      </button>
+                    {!isPDF(file) && (
+                      <span className="text-xs text-gray-500 italic">Non visualizzabile</span>
                     )}
                   </div>
                 ))}

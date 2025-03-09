@@ -47,7 +47,7 @@ export default function SimilarCriteria({ similarCriteria, onClose }: Props) {
                     <p className="text-sm text-gray-600">{criterio.documents}</p>
                   </div>
                   <div className="bg-[#3dcab1]/10 text-[#3dcab1] px-2 py-1 rounded text-sm">
-                    Score: {(criterio.score * 100).toFixed(1)}%
+                    Score: {Math.floor(criterio.score * 100)}%
                   </div>
                 </div>
                 <div className="flex justify-between items-center">

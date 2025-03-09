@@ -4,6 +4,9 @@ import React, { useState, useRef } from "react";
 import JsonViewer from "./JsonViewer";
 import * as XLSX from 'xlsx';
 import ConsegnaList from "./ConsegnaList";
+import ConsegneFolder from "./ConsegneFolder";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 interface Criterio {
   id: string;
@@ -124,7 +127,7 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
               Torna ai criteri
             </button>
           </div>
-          <ConsegnaList initialSearchTerm={searchFileName} />
+          <ConsegnaList initialSearchTerm={searchFileName} singleColumn={true} />
         </div>
       ) : (
         <>
@@ -236,7 +239,7 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
                             <div className="flex justify-between items-start">
                               <h5 className="font-medium text-gray-800">ID: {similarCriterio.criterio_id}</h5>
                               <div className="bg-[#3dcab1]/10 text-[#3dcab1] px-2 py-0.5 rounded-full text-xs font-medium">
-                                {(similarCriterio.score * 100).toFixed(1)}%
+                                {Math.floor(similarCriterio.score * 100)}%
                               </div>
                             </div>
                             <p className="text-xs text-gray-600 mt-1 line-clamp-2">{similarCriterio.documents}</p>
@@ -256,7 +259,7 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
                           </h4>
                           <div className="flex items-center gap-2">
                             <div className="bg-[#3dcab1]/10 text-[#3dcab1] px-3 py-1 rounded-full text-sm font-medium">
-                              Score: {(selectedSimilarCriterio.score * 100).toFixed(1)}%
+                              Score: {Math.floor(selectedSimilarCriterio.score * 100)}%
                             </div>
                             <button
                               onClick={() => copyToClipboard(selectedSimilarCriterio.documents)}
@@ -303,7 +306,7 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
                   {/* Right side - ConsegnaList */}
                   <div className="w-full md:w-1/3 overflow-y-auto bg-white">
                     {selectedSimilarCriterio ? (
-                      <ConsegnaList initialSearchTerm={selectedSimilarCriterio.filename.replace('.json', '')} />
+                      <ConsegnaList initialSearchTerm={selectedSimilarCriterio.filename.replace('.json', '')} singleColumn={true} />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-gray-500 p-6">
                         <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,7 +368,7 @@ export default function CriteriViewer({ criteri, data }: Props) {
             'Punteggio Massimo': '',
             'Descrizione': similar.documents,
             'Parent ID': criterio.id,
-            'Score': (similar.score * 100).toFixed(1) + '%',
+            'Score': Math.floor(similar.score * 100) + '%',
             'Filename': similar.filename
           });
         });
@@ -387,20 +390,104 @@ export default function CriteriViewer({ criteri, data }: Props) {
     return flattenedData;
   };
 
-  // Funzione per esportare in Excel
-  const exportToExcel = () => {
+  // Funzione per esportare in PDF
+  const exportToPDF = () => {
     const data = prepareDataForExport();
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Criteri");
+    
+    // Crea un nuovo documento PDF
+    const doc = new jsPDF();
+    
+    // Simulated executive summary data
+    const summaryData = {
+      stazioneAppaltante: "Comune di Torino - Direzione Infrastrutture",
+      oggetto: "Lavori di manutenzione straordinaria e riqualificazione della rete fognaria cittadina",
+      importo: "€ 12.450.000,00",
+      scadenza: "15/04/2024 ore 12:00",
+      identificativi: {
+        CIG: "9283746510",
+        CUP: "J45H22000180001",
+        CPV: "45231300-8"
+      },
+      rup: "Ing. Marco Rossi"
+    };
+    
+    // Aggiungi titolo
+    doc.setFontSize(18);
+    doc.text("Criteri Estratti", 14, 22);
+    
+    // Aggiungi executive summary
+    doc.setFontSize(14);
+    doc.text("Executive Summary", 14, 35);
+    
+    doc.setFontSize(10);
+    doc.text("Stazione appaltante:", 14, 45);
+    doc.text(summaryData.stazioneAppaltante, 60, 45);
+    
+    doc.text("Oggetto:", 14, 52);
+    doc.text(summaryData.oggetto, 60, 52, { maxWidth: 130 });
+    
+    doc.text("Importo:", 14, 65);
+    doc.text(summaryData.importo, 60, 65);
+    
+    doc.text("Scadenza:", 14, 72);
+    doc.text(summaryData.scadenza, 60, 72);
+    
+    doc.text("CIG:", 14, 79);
+    doc.text(summaryData.identificativi.CIG, 60, 79);
+    
+    doc.text("CUP:", 14, 86);
+    doc.text(summaryData.identificativi.CUP, 60, 86);
+    
+    doc.text("RUP:", 14, 93);
+    doc.text(summaryData.rup, 60, 93);
+    
+    // Aggiungi titolo tabella criteri
+    doc.setFontSize(14);
+    doc.text("Criteri di Valutazione", 14, 105);
+    
+    // Prepara i dati per la tabella
+    const tableData = data.filter(item => item['Tipo'] === 'Criterio Principale').map(item => [
+      item['ID'],
+      item['Nome'],
+      item['Punteggio Massimo'],
+      item['Descrizione'].substring(0, 60) + (item['Descrizione'].length > 60 ? '...' : '')
+    ]);
+    
+    // Definisci le colonne della tabella
+    const tableColumns = [
+      { header: 'ID', dataKey: 'id' },
+      { header: 'Nome', dataKey: 'nome' },
+      { header: 'Punteggio', dataKey: 'punteggio' },
+      { header: 'Descrizione', dataKey: 'descrizione' }
+    ];
+    
+    // Genera la tabella
+    autoTable(doc, {
+      head: [tableColumns.map(col => col.header)],
+      body: tableData,
+      startY: 110,
+      margin: { top: 110 },
+      styles: { overflow: 'linebreak' },
+      columnStyles: {
+        0: { cellWidth: 20 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 110 }
+      },
+      headStyles: {
+        fillColor: [61, 202, 177],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      }
+    });
     
     // Genera un nome file con data e ora
     const date = new Date();
     const formattedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}`;
-    const fileName = `criteri_estratti_${formattedDate}.xlsx`;
+    const fileName = `criteri_estratti_${formattedDate}.pdf`;
     
     // Scarica il file
-    XLSX.writeFile(workbook, fileName);
+    doc.save(fileName);
   };
 
   return (
@@ -409,14 +496,14 @@ export default function CriteriViewer({ criteri, data }: Props) {
         <h2 className="text-2xl font-bold text-gray-800">Criteri di Valutazione</h2>
         <div className="flex gap-3">
           <button
-            onClick={exportToExcel}
+            onClick={exportToPDF}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            title="Scarica Excel con tutti i criteri"
+            title="Scarica PDF con tutti i criteri"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Scarica Excel
+            Scarica PDF
           </button>
           <button
             onClick={() => setShowJson(!showJson)}

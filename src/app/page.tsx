@@ -7,13 +7,15 @@ import Navbar from "@/components/Navbar";
 import CriteriViewer from "@/components/CriteriViewer";
 import FileList from "@/components/FileList";
 import ConsegnaList from "@/components/ConsegnaList";
+import ExecutiveSummary from "@/components/ExecutiveSummary";
+import ChatHistory from "@/components/ChatHistory";
 import { useSearchParams } from "next/navigation";
 
 export default function Home() {
   const [logs, setLogs] = useState<string[]>([]);
   const [jsonResult, setJsonResult] = useState<any>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<'upload' | 'gestionale'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'gestionale' | 'appaltina'>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileUploaderRef = useRef(null);
   
@@ -49,24 +51,30 @@ export default function Home() {
         {/* UPLOAD Section */}
         {activeTab === 'upload' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <FileUploader 
-                ref={fileUploaderRef}
-                setLogs={setLogs} 
-                setJsonResult={setJsonResult} 
-                setElapsedTime={setElapsedTime}
-              />
-            </div>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="bg-white rounded-xl shadow-lg p-8 flex-1">
+                <FileUploader 
+                  ref={fileUploaderRef}
+                  setLogs={setLogs} 
+                  setJsonResult={setJsonResult} 
+                  setElapsedTime={setElapsedTime}
+                />
+              </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <LogViewer logs={logs} elapsedTime={elapsedTime} />
+              <div className="bg-white rounded-xl shadow-lg p-6 md:w-1/3">
+                <LogViewer logs={logs} elapsedTime={elapsedTime} />
+              </div>
             </div>
 
             {jsonResult && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-gray-800">Criteri identificati</h2>
-                <CriteriViewer criteri={[jsonResult]} data={jsonResult} />
-              </div>
+              <>
+                <ExecutiveSummary />
+                
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-semibold mb-4 text-gray-800">Criteri identificati</h2>
+                  <CriteriViewer criteri={[jsonResult]} data={jsonResult} />
+                </div>
+              </>
             )}
           </div>
         )}
@@ -93,6 +101,17 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* APPALTINA Section */}
+        {activeTab === 'appaltina' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">AppalTina - Assistente Virtuale</h2>
+              <p className="text-gray-600 mb-6">Consulta lo storico delle tue conversazioni con AppalTina, l'assistente virtuale per i disciplinari di gara.</p>
+              <ChatHistory />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -100,14 +119,14 @@ export default function Home() {
 
 // TabNavigation component that uses useSearchParams
 function TabNavigation({ activeTab, setActiveTab }: { 
-  activeTab: 'upload' | 'gestionale', 
-  setActiveTab: (tab: 'upload' | 'gestionale') => void 
+  activeTab: 'upload' | 'gestionale' | 'appaltina', 
+  setActiveTab: (tab: 'upload' | 'gestionale' | 'appaltina') => void 
 }) {
   const searchParams = useSearchParams();
   
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'upload' || tab === 'gestionale') {
+    if (tab === 'upload' || tab === 'gestionale' || tab === 'appaltina') {
       setActiveTab(tab);
     }
   }, [searchParams, setActiveTab]);
