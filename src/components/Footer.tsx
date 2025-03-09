@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Piemontecnica</h3>
+            <h3 className="text-lg font-semibold mb-4">LEVELS OG</h3>
             <p className="text-gray-400 text-sm">
               Piattaforma per la gestione e l'analisi dei criteri tecnici.
             </p>
@@ -35,14 +35,14 @@ export default function Footer() {
             <p className="text-gray-400 text-sm">
               Per informazioni o supporto, contattaci all'indirizzo email: <br />
               <a href="mailto:info@example.com" className="text-blue-400 hover:text-blue-300">
-                info@example.com
+                info@levelstech.it
               </a>
             </p>
           </div>
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-400 text-sm">
-          © {currentYear} Piemontecnica. Tutti i diritti riservati.
+          © {currentYear} LEVELS OG. Tutti i diritti riservati.
         </div>
       </div>
     </footer>
