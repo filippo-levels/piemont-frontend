@@ -1,92 +1,94 @@
-import React, { useState } from 'react';
+"use client";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-interface Props {
-  filename: string;
-  onFileClick: (filename: string) => void;
+interface ConsegneFolderProps {
+  fileName: string;
 }
 
-export default function ConsegneFolder({ filename, onFileClick }: Props) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  // Mock data for folder contents
-  const folderContents = [
-    { id: 1, name: 'Documento 1.pdf', type: 'pdf' },
-    { id: 2, name: 'Specifiche tecniche.docx', type: 'docx' },
-    { id: 3, name: 'Planimetria.dwg', type: 'dwg' },
-    { id: 4, name: 'Computo metrico.xlsx', type: 'xlsx' },
-    { id: 5, name: 'Relazione tecnica.pdf', type: 'pdf' },
-  ];
-  
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-  
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return (
-          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        );
-      case 'docx':
-        return (
-          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        );
-      case 'xlsx':
-        return (
-          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        );
-      default:
-        return (
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        );
+export default function ConsegneFolder({ fileName }: ConsegneFolderProps) {
+  const [consegne, setConsegne] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchConsegne = async () => {
+      try {
+        setLoading(true);
+        // Sostituisci con l'endpoint effettivo per le consegne
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/consegne/${fileName}`);
+        
+        if (response.data && response.data.consegne) {
+          setConsegne(response.data.consegne);
+        } else {
+          setConsegne([]);
+        }
+      } catch (error) {
+        console.error('Error fetching consegne:', error);
+        setError('Impossibile caricare le consegne');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (fileName) {
+      fetchConsegne();
     }
+  }, [fileName]);
+
+  const handleOpenConsegna = (consegnaId: string) => {
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/view_consegna/${consegnaId}`, '_blank');
   };
-  
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div 
-        className="bg-gray-100 p-3 flex items-center justify-between cursor-pointer hover:bg-gray-200 transition-colors"
-        onClick={toggleExpand}
-      >
-        <div className="flex items-center">
-          <svg className="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
-          <span className="font-medium">{filename.replace('.json', '')}</span>
-        </div>
-        <svg 
-          className={`w-5 h-5 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#3dcab1]"></div>
       </div>
-      
-      {isExpanded && (
-        <div className="p-3 space-y-2 bg-white">
-          {folderContents.map((file) => (
-            <div 
-              key={file.id}
-              className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
-              onClick={() => onFileClick(`${filename.replace('.json', '')}/${file.name}`)}
-            >
-              {getFileIcon(file.type)}
-              <span className="ml-2 text-sm">{file.name}</span>
-            </div>
-          ))}
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-4">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (consegne.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8">
+        <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <p>Nessuna consegna disponibile per questo disciplinare</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {consegne.map((consegna, index) => (
+        <div 
+          key={index}
+          className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+          onClick={() => handleOpenConsegna(consegna.id)}
+        >
+          <div className="bg-amber-100 p-2 rounded-lg mr-3">
+            <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-800">{consegna.nome || `Consegna ${index + 1}`}</h3>
+            <p className="text-sm text-gray-500">{consegna.data || 'Data non disponibile'}</p>
+          </div>
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </div>
-      )}
+      ))}
     </div>
   );
 } 

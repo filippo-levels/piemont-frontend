@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import JsonViewer from "./JsonViewer";
-import * as XLSX from 'xlsx';
-import ConsegnaList from "./ConsegnaList";
-import ConsegneFolder from "./ConsegneFolder";
-import jsPDF from "jspdf";
-import autoTable from 'jspdf-autotable';
+import JsonViewer from "../../components/JsonViewer";
+import ConsegnaList from "../../components/ConsegnaList";
+import { generatePDF } from "../../utils/pdfGenerator";
 
 interface Criterio {
   id: string;
@@ -32,10 +29,8 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
   criterio,
   level = 0,
 }) => {
-  const [showSimilar, setShowSimilar] = useState(false);
   const [showConsegnaList, setShowConsegnaList] = useState(false);
   const [searchFileName, setSearchFileName] = useState("");
-  const [focusedCriterioId, setFocusedCriterioId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedSimilarCriterio, setSelectedSimilarCriterio] = useState<{
     id: string;
@@ -48,29 +43,12 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
   const hasSimilarCriteria = criterio.criteriSimili?.length > 0;
   const criterioRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  const handleFileClick = (filename: string) => {
-    // Extract filename without .json extension
-    const searchTerm = filename.replace('.json', '');
-    setSearchFileName(searchTerm);
-    setShowConsegnaList(true);
-  };
 
   const handleCloseConsegnaList = () => {
     setShowConsegnaList(false);
     setSearchFileName("");
   };
 
-  const handleCriterioFocus = (id: string) => {
-    setFocusedCriterioId(id);
-    
-    // Scroll to the focused criterio with smooth behavior
-    if (criterioRefs.current[id]) {
-      criterioRefs.current[id]?.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  };
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -91,8 +69,8 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
     filename: string;
   }) => {
     setSelectedSimilarCriterio(similarCriterio);
-    setFocusedCriterioId(similarCriterio.id);
   };
+  
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(
@@ -104,6 +82,17 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
         console.error('Could not copy text: ', err);
       }
     );
+  };
+  
+  const openDisciplinare = (filename: string) => {
+    try {
+      // Rimuove .json se presente e aggiunge .pdf
+      const fileName = filename.replace('.json', '') + '.pdf';
+      window.open(`http://localhost:8000/api/view_file/${fileName}`, '_blank');
+    } catch (error) {
+      console.error('Errore nell\'apertura del file:', error);
+      alert('File non trovato o errore nell\'apertura del file');
+    }
   };
 
   return (
@@ -131,24 +120,24 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-start mb-3">
+          <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold text-gray-800">
               {criterio.id} - {criterio.nome}
             </h3>
-            <div className="flex items-center gap-3">
-              <span className="text-blue-600 font-medium px-2 py-1 bg-blue-50 rounded-md">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 font-medium px-2 py-1 bg-blue-50 rounded-md min-w-16 text-center">
                 {criterio.punteggioMassimo}
               </span>
               {hasSimilarCriteria && (
                 <button
                   onClick={handleOpenModal}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors"
                   title="Mostra criteri simili"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <span className="text-sm font-medium">Criteri Simili</span>
+                  <span className="text-sm font-medium whitespace-nowrap">Criteri Simili</span>
                 </button>
               )}
             </div>
@@ -195,17 +184,17 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
                   {/* Left side - Selected Criterio */}
                   <div className="w-full md:w-1/3 p-6 overflow-y-auto border-r">
                     <div className="mb-4">
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex justify-between items-center mb-3">
                         <h4 className="text-lg font-semibold text-gray-800">
                           {criterio.id} - {criterio.nome}
                         </h4>
                         <div className="flex items-center gap-2">
-                          <span className="text-blue-600 font-medium px-2 py-1 bg-blue-50 rounded-md">
+                          <span className="text-blue-600 font-medium px-2 py-1 bg-blue-50 rounded-md min-w-16 text-center">
                             {criterio.punteggioMassimo}
                           </span>
                           <button
                             onClick={() => copyToClipboard(criterio.descrizione)}
-                            className="p-2 text-gray-500 hover:text-gray-700 transition-colors bg-gray-100 rounded-full"
+                            className="p-2 text-gray-500 hover:text-gray-700 transition-colors bg-gray-100 rounded-full flex-shrink-0"
                             title="Copia testo del criterio"
                           >
                             {copySuccess ? (
@@ -222,83 +211,90 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
                       </div>
                       <p className="text-gray-700 text-sm leading-relaxed">{criterio.descrizione}</p>
                     </div>
+                  </div>
+                  
+                  {/* Middle section - Similar Criteria List */}
+                  <div className="w-full md:w-1/3 p-6 overflow-y-auto border-r bg-gray-50">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Criteri Simili</h4>
                     
-                    <div className="mt-6">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-3">Criteri Simili</h4>
-                      <div className="space-y-3">
-                        {criterio.criteriSimili.map((similarCriterio) => (
+                    {/* List of all criteria */}
+                    <div className="space-y-2">
+                      {criterio.criteriSimili.map((similarCriterio) => (
                           <div 
                             key={similarCriterio.id}
-                            className={`border rounded-lg p-3 transition-all duration-300 bg-white shadow-sm cursor-pointer ${
+                            className={`border rounded-lg p-3 bg-white shadow-sm cursor-pointer transition-all duration-200 ${
                               selectedSimilarCriterio?.id === similarCriterio.id 
                                 ? 'border-[#3dcab1] ring-2 ring-[#3dcab1] ring-opacity-50' 
                                 : 'hover:border-[#3dcab1]'
                             }`}
                             onClick={() => handleSelectSimilarCriterio(similarCriterio)}
                           >
-                            <div className="flex justify-between items-start">
-                              <h5 className="font-medium text-gray-800">ID: {similarCriterio.criterio_id}</h5>
-                              <div className="bg-[#3dcab1]/10 text-[#3dcab1] px-2 py-0.5 rounded-full text-xs font-medium">
-                                {Math.floor(similarCriterio.score * 100)}%
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h5 className="font-medium text-gray-800 text-sm">ID: {similarCriterio.criterio_id}</h5>
+                                <p className="text-xs text-gray-500">{similarCriterio.filename.replace('.json', '')}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="bg-[#3dcab1]/10 text-[#3dcab1] px-2 py-0.5 rounded-full text-xs font-medium">
+                                  {Math.floor(similarCriterio.score)}%
+                                </span>
+                                {selectedSimilarCriterio?.id === similarCriterio.id && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyToClipboard(similarCriterio.documents);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-gray-700 transition-colors bg-gray-100 rounded-full flex-shrink-0"
+                                    title="Copia testo del criterio simile"
+                                  >
+                                    {copySuccess ? (
+                                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    ) : (
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             </div>
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">{similarCriterio.documents}</p>
+                            
+                            {selectedSimilarCriterio?.id === similarCriterio.id ? (
+                              <>
+                                <p className="text-sm text-gray-700 leading-relaxed my-2 border-t border-b border-gray-100 py-2">
+                                  {similarCriterio.documents}
+                                </p>
+                                <div className="mt-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openDisciplinare(similarCriterio.filename);
+                                    }}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center text-sm"
+                                    title="Apri il disciplinare in una nuova finestra"
+                                  >
+                                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    Apri PDF
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">{similarCriterio.documents}</p>
+                            )}
                           </div>
                         ))}
-                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Middle section - Selected Similar Criterio */}
-                  <div className="w-full md:w-1/3 p-6 overflow-y-auto border-r bg-gray-50">
-                    {selectedSimilarCriterio ? (
-                      <div>
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-lg font-semibold text-gray-800">
-                            ID Criterio: {selectedSimilarCriterio.criterio_id}
-                          </h4>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-[#3dcab1]/10 text-[#3dcab1] px-3 py-1 rounded-full text-sm font-medium">
-                              Score: {Math.floor(selectedSimilarCriterio.score * 100)}%
-                            </div>
-                            <button
-                              onClick={() => copyToClipboard(selectedSimilarCriterio.documents)}
-                              className="p-2 text-gray-500 hover:text-gray-700 transition-colors bg-gray-100 rounded-full"
-                              title="Copia testo del criterio simile"
-                            >
-                              {copySuccess ? (
-                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 leading-relaxed mb-4">{selectedSimilarCriterio.documents}</p>
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={() => setSearchFileName(selectedSimilarCriterio.filename.replace('.json', ''))}
-                            className="px-4 py-2 bg-[#3dcab1] text-white rounded-md hover:bg-[#3dcab1]/90 transition-colors flex items-center"
-                            title="Visualizza questo file nella lista consegne"
-                          >
-                            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            {selectedSimilarCriterio.filename.replace('.json', '')}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    
+                    {!selectedSimilarCriterio && criterio.criteriSimili.length === 0 && (
+                      <div className="flex flex-col items-center justify-center h-48 text-gray-500">
                         <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="text-center">Seleziona un criterio simile per visualizzarne i dettagli</p>
+                        <p className="text-center">Nessun criterio simile disponibile</p>
                       </div>
                     )}
                   </div>
@@ -343,151 +339,8 @@ export default function CriteriViewer({ criteri, data }: Props) {
 
   if (!criteri?.length) return null;
 
-  // Funzione per preparare i dati per l'export in Excel
-  const prepareDataForExport = () => {
-    const flattenedData: any[] = [];
-    
-    const flattenCriteria = (criterio: Criterio, parentId = '') => {
-      // Aggiungi il criterio principale
-      flattenedData.push({
-        'Tipo': 'Criterio Principale',
-        'ID': criterio.id,
-        'Nome': criterio.nome,
-        'Punteggio Massimo': criterio.punteggioMassimo,
-        'Descrizione': criterio.descrizione,
-        'Parent ID': parentId
-      });
-      
-      // Aggiungi i criteri simili
-      if (criterio.criteriSimili?.length > 0) {
-        criterio.criteriSimili.forEach(similar => {
-          flattenedData.push({
-            'Tipo': 'Criterio Simile',
-            'ID': similar.criterio_id,
-            'Nome': '',
-            'Punteggio Massimo': '',
-            'Descrizione': similar.documents,
-            'Parent ID': criterio.id,
-            'Score': Math.floor(similar.score * 100) + '%',
-            'Filename': similar.filename
-          });
-        });
-      }
-      
-      // Processa i subcriteri ricorsivamente
-      if (criterio.subCriteri?.length > 0) {
-        criterio.subCriteri.forEach(sub => {
-          flattenCriteria(sub, criterio.id);
-        });
-      }
-    };
-    
-    // Processa tutti i criteri
-    criteri.forEach(criterio => {
-      flattenCriteria(criterio);
-    });
-    
-    return flattenedData;
-  };
-
-  // Funzione per esportare in PDF
-  const exportToPDF = () => {
-    const data = prepareDataForExport();
-    
-    // Crea un nuovo documento PDF
-    const doc = new jsPDF();
-    
-    // Simulated executive summary data
-    const summaryData = {
-      stazioneAppaltante: "Comune di Torino - Direzione Infrastrutture",
-      oggetto: "Lavori di manutenzione straordinaria e riqualificazione della rete fognaria cittadina",
-      importo: "€ 12.450.000,00",
-      scadenza: "15/04/2024 ore 12:00",
-      identificativi: {
-        CIG: "9283746510",
-        CUP: "J45H22000180001",
-        CPV: "45231300-8"
-      },
-      rup: "Ing. Marco Rossi"
-    };
-    
-    // Aggiungi titolo
-    doc.setFontSize(18);
-    doc.text("Criteri Estratti", 14, 22);
-    
-    // Aggiungi executive summary
-    doc.setFontSize(14);
-    doc.text("Executive Summary", 14, 35);
-    
-    doc.setFontSize(10);
-    doc.text("Stazione appaltante:", 14, 45);
-    doc.text(summaryData.stazioneAppaltante, 60, 45);
-    
-    doc.text("Oggetto:", 14, 52);
-    doc.text(summaryData.oggetto, 60, 52, { maxWidth: 130 });
-    
-    doc.text("Importo:", 14, 65);
-    doc.text(summaryData.importo, 60, 65);
-    
-    doc.text("Scadenza:", 14, 72);
-    doc.text(summaryData.scadenza, 60, 72);
-    
-    doc.text("CIG:", 14, 79);
-    doc.text(summaryData.identificativi.CIG, 60, 79);
-    
-    doc.text("CUP:", 14, 86);
-    doc.text(summaryData.identificativi.CUP, 60, 86);
-    
-    doc.text("RUP:", 14, 93);
-    doc.text(summaryData.rup, 60, 93);
-    
-    // Aggiungi titolo tabella criteri
-    doc.setFontSize(14);
-    doc.text("Criteri di Valutazione", 14, 105);
-    
-    // Prepara i dati per la tabella
-    const tableData = data.filter(item => item['Tipo'] === 'Criterio Principale').map(item => [
-      item['ID'],
-      item['Nome'],
-      item['Punteggio Massimo'],
-      item['Descrizione'].substring(0, 60) + (item['Descrizione'].length > 60 ? '...' : '')
-    ]);
-    
-    // Definisci le colonne della tabella
-    const tableColumns = [
-      { header: 'ID', dataKey: 'id' },
-      { header: 'Nome', dataKey: 'nome' },
-      { header: 'Punteggio', dataKey: 'punteggio' },
-      { header: 'Descrizione', dataKey: 'descrizione' }
-    ];
-    
-    // Genera la tabella
-    autoTable(doc, {
-      head: [tableColumns.map(col => col.header)],
-      body: tableData,
-      startY: 110,
-      margin: { top: 110 },
-      styles: { overflow: 'linebreak' },
-      columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 110 }
-      },
-      headStyles: {
-        fillColor: [61, 202, 177],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      }
-    });
-    
-    // Genera un nome file con data e ora
-    const date = new Date();
-    const formattedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}`;
-    const fileName = `criteri_estratti_${formattedDate}.pdf`;
-    
-    // Scarica il file
-    doc.save(fileName);
+  const handleExportToPDF = () => {
+    generatePDF(criteri);
   };
 
   return (
@@ -496,7 +349,7 @@ export default function CriteriViewer({ criteri, data }: Props) {
         <h2 className="text-2xl font-bold text-gray-800">Criteri di Valutazione</h2>
         <div className="flex gap-3">
           <button
-            onClick={exportToPDF}
+            onClick={handleExportToPDF}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             title="Scarica PDF con tutti i criteri"
           >
@@ -527,4 +380,4 @@ export default function CriteriViewer({ criteri, data }: Props) {
       )}
     </div>
   );
-} 
+}
