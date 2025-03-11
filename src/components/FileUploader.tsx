@@ -6,9 +6,10 @@ interface FileUploaderProps {
   setLogs: Dispatch<SetStateAction<string[]>>;
   setJsonResult: (data: any) => void;
   setElapsedTime: (time: number) => void;
+  onRemove?: () => void;
 }
 
-const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }, FileUploaderProps>(({ setLogs, setJsonResult, setElapsedTime }, ref) => {
+const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }, FileUploaderProps>(({ setLogs, setJsonResult, setElapsedTime, onRemove }, ref) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -147,16 +148,15 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
     const logMessage = "🗑️ File rimosso";
     setCurrentLog(logMessage);
     setLogs((prev: string[]) => [...prev, logMessage]);
-    setJsonResult(null);
-    setElapsedTime(0);
-    setCurrentElapsedTime(0);
-    setShowElapsedTime(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (onRemove) {
+      onRemove();
     }
   };
 
@@ -305,7 +305,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           </div>
         </div>
         
-        <div className="flex flex-row justify-center gap-4">
+        <div className="flex flex-row justify-center">
           <button 
             onClick={handleAnalyze} 
             disabled={loading || !file}
@@ -339,7 +339,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                 </svg>
                 Analisi in corso...
               </>
-            ) : (
+            ) :
               <>
                 <svg 
                   className="w-5 h-5 mr-2" 
@@ -357,31 +357,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                 </svg>
                 Carica & Analizza
               </>
-            )}
-          </button>
-          <button 
-            onClick={handleRemove}
-            disabled={!file}
-            className="w-48 px-6 py-2 bg-[#101010] text-[#fefefe] rounded-lg
-              disabled:opacity-50 hover:bg-[#101010]/90 transition-all duration-200
-              font-medium shadow-sm hover:shadow-md disabled:hover:shadow-none
-              flex items-center justify-center gap-2"
-          >
-            <svg 
-              className="h-5 w-5" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            Rimuovi
+            }
           </button>
         </div>
         
@@ -402,5 +378,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
     </div>
   );
 });
+
+FileUploader.displayName = "FileUploader";
 
 export default FileUploader;
