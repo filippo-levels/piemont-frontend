@@ -17,6 +17,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
   const [currentLog, setCurrentLog] = useState<string>("");
   const [showElapsedTime, setShowElapsedTime] = useState(false);
   const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
+  const [onlyCriteria, setOnlyCriteria] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +112,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("bool_short", onlyCriteria.toString());
 
     try {
       // Call full_analyze API
@@ -359,6 +361,20 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
               </div>
             )}
           </div>
+        </div>
+        
+        {/* Checkbox for "only criteria" option */}
+        <div className="flex items-center">
+          <input
+            id="only-criteria-checkbox"
+            type="checkbox"
+            checked={onlyCriteria}
+            onChange={(e) => setOnlyCriteria(e.target.checked)}
+            className="w-4 h-4 text-[#3dcab1] bg-gray-100 border-gray-300 rounded focus:ring-[#3dcab1] focus:ring-2"
+          />
+          <label htmlFor="only-criteria-checkbox" className="ml-2 text-sm font-medium text-gray-700">
+            Disciplinare con solo criteri
+          </label>
         </div>
         
         <div className="flex flex-row justify-center gap-4">

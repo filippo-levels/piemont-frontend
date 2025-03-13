@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CriteriaViewer from "@/components/CriteriaViewer";
 import ConsegnaList from "@/components/ConsegnaList";
 
@@ -10,6 +10,9 @@ export default function DocumentPage() {
   const [criteriaData, setCriteriaData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'consegne' | 'criteri'>('consegne');
+  const criteriaRef = useRef<HTMLDivElement>(null);
+  const consegneRef = useRef<HTMLDivElement>(null);
   
   const fileName = decodeURIComponent(params.fileName as string);
   const displayFileName = fileName.replace('.json', '');
@@ -21,6 +24,16 @@ export default function DocumentPage() {
 
   const handleView = () => {
     window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/view_file/${fileName}`, '_blank');
+  };
+
+  const scrollToCriteria = () => {
+    criteriaRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setActiveTab('criteri');
+  };
+
+  const scrollToConsegne = () => {
+    consegneRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setActiveTab('consegne');
   };
 
   useEffect(() => {
@@ -81,8 +94,44 @@ export default function DocumentPage() {
           </div>
         </div>
 
+        {/* Navigation Tabs */}
+        <div className="bg-white rounded-xl shadow-lg p-4 sticky top-20 z-10">
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={scrollToConsegne}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                activeTab === 'consegne' 
+                  ? 'bg-[#3dcab1] text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Lista Consegne
+              </div>
+            </button>
+            <button
+              onClick={scrollToCriteria}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                activeTab === 'criteri' 
+                  ? 'bg-[#3dcab1] text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Criteri di Valutazione
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-8">
           {loading ? (
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="text-center py-12">
@@ -104,17 +153,51 @@ export default function DocumentPage() {
             </div>
           ) : (
             <>
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Criteri di Valutazione</h2>
-                <CriteriaViewer data={criteriaData} />
+              {/* Lista Consegne Section (First) */}
+              <div ref={consegneRef} className="bg-white rounded-xl shadow-lg p-8 scroll-mt-32">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <svg className="w-6 h-6 mr-2 text-[#3dcab1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Lista Consegne
+                </h2>
+                <ConsegnaList initialSearchTerm={searchFileName} singleColumn={true} />
               </div>
               
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Lista Consegne</h2>
-                <ConsegnaList initialSearchTerm={searchFileName} singleColumn={true} />
+              {/* Criteri di Valutazione Section (Second) */}
+              <div ref={criteriaRef} className="bg-white rounded-xl shadow-lg p-8 scroll-mt-32">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <svg className="w-6 h-6 mr-2 text-[#3dcab1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Criteri di Valutazione
+                </h2>
+                <CriteriaViewer data={criteriaData} />
               </div>
             </>
           )}
+        </div>
+        
+        {/* Floating Navigation Button */}
+        <div className="fixed bottom-8 right-8 flex flex-col space-y-4">
+          <button 
+            onClick={scrollToConsegne}
+            className="p-3 bg-[#3dcab1] text-white rounded-full shadow-lg hover:bg-[#35b6a0] transition-colors"
+            title="Vai alle consegne"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </button>
+          <button 
+            onClick={scrollToCriteria}
+            className="p-3 bg-[#3dcab1] text-white rounded-full shadow-lg hover:bg-[#35b6a0] transition-colors"
+            title="Vai ai criteri"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

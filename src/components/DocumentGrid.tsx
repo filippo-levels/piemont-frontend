@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
 
 interface DocumentGridProps {
@@ -11,18 +11,23 @@ interface DocumentGridProps {
   viewMode?: 'grid' | 'list';
 }
 
-export default function DocumentGrid({ 
+const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, DocumentGridProps>(({ 
   onError, 
   onDocumentClick, 
   showNewButton = true,
   hideTitle = false,
   smallerIcons = false,
   viewMode = 'grid'
-}: DocumentGridProps) {
+}, ref) => {
   const [documents, setDocuments] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState<string[]>([]);
+
+  // Espone la funzione fetchDocuments al componente padre
+  useImperativeHandle(ref, () => ({
+    fetchDocuments
+  }));
 
   // Caricamento automatico all'apertura
   useEffect(() => {
@@ -221,4 +226,6 @@ export default function DocumentGrid({
       </div>
     </>
   );
-} 
+});
+
+export default DocumentGrid; 
