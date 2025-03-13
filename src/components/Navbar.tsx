@@ -48,19 +48,27 @@ export default function Navbar() {
               <a 
                 href="#" 
                 onClick={handleUploadClick}
-                className="text-white hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium"
+                className="relative overflow-hidden group text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-blue-600/10 border border-transparent hover:border-blue-500"
               >
-                Upload
+                <span className="relative z-10 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload
+                </span>
               </a>
-              <Link href="/lucy" className="text-white hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <Link 
+                href="/lucy" 
+                className="relative overflow-hidden group text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-blue-600/10 border border-transparent hover:border-blue-500 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
                 Lucy
               </Link>
             </div>
             
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+            <button className="relative overflow-hidden text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/25">
               Login
             </button>
           </div>

@@ -1,8 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import FileUploader from "@/components/FileUploader";
+import FileUploader from "@/app/upload/FileUploader";
 import CriteriViewer from "@/app/upload/CriteriViewer";
+import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
 
 const STORAGE_KEY = 'uploadAnalysisResult';
 
@@ -10,6 +11,8 @@ export default function UploadPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [jsonResult, setJsonResult] = useState<any>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [executiveSummary, setExecutiveSummary] = useState<any>(null);
+  const [activeView, setActiveView] = useState<'criteri' | 'executive' | null>(null);
   const router = useRouter();
   const fileUploaderRef = useRef(null);
 
@@ -19,6 +22,7 @@ export default function UploadPage() {
     if (savedResult) {
       try {
         setJsonResult(JSON.parse(savedResult));
+        setActiveView('criteri');
       } catch (error) {
         console.error('Errore nel parsing dei dati salvati:', error);
         localStorage.removeItem(STORAGE_KEY);
@@ -30,8 +34,16 @@ export default function UploadPage() {
   useEffect(() => {
     if (jsonResult) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(jsonResult));
+      setActiveView('criteri');
     }
   }, [jsonResult]);
+
+  // Imposta la vista executive quando arriva il summary
+  useEffect(() => {
+    if (executiveSummary) {
+      setActiveView('executive');
+    }
+  }, [executiveSummary]);
 
   const handleBack = () => {
     router.push('/');
@@ -40,8 +52,10 @@ export default function UploadPage() {
   const handleRemoveAnalysis = () => {
     localStorage.removeItem(STORAGE_KEY);
     setJsonResult(null);
+    setExecutiveSummary(null);
     setLogs([]);
     setElapsedTime(0);
+    setActiveView(null);
   };
 
   return (
@@ -53,7 +67,7 @@ export default function UploadPage() {
               Analizza un disciplinare di gara
             </h1>
             <div className="flex gap-3">
-              {jsonResult && (
+              {(jsonResult || executiveSummary) && (
                 <button
                   onClick={handleRemoveAnalysis}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
@@ -84,12 +98,43 @@ export default function UploadPage() {
               setLogs={setLogs} 
               setJsonResult={setJsonResult} 
               setElapsedTime={setElapsedTime}
+              setExecutiveSummary={setExecutiveSummary}
               onRemove={handleRemoveAnalysis}
             />
           </div>
 
-          {/* Analysis Results */}
-          {jsonResult && (
+          {/* View Selector Tabs (only show if we have results) */}
+          {(jsonResult || executiveSummary) && (
+            <div className="flex border-b border-gray-200 mb-4">
+              {jsonResult && (
+                <button
+                  onClick={() => setActiveView('criteri')}
+                  className={`py-2 px-4 font-medium ${
+                    activeView === 'criteri'
+                      ? 'border-b-2 border-[#3dcab1] text-[#3dcab1]'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Criteri Estratti
+                </button>
+              )}
+              {executiveSummary && (
+                <button
+                  onClick={() => setActiveView('executive')}
+                  className={`py-2 px-4 font-medium ${
+                    activeView === 'executive'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Executive Summary
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Conditional Rendering of Results */}
+          {activeView === 'criteri' && jsonResult && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <CriteriViewer 
                 criteri={[jsonResult]}
@@ -99,6 +144,12 @@ export default function UploadPage() {
                   metadata: jsonResult.metadata || {}
                 }}
               />
+            </div>
+          )}
+
+          {activeView === 'executive' && executiveSummary && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <ExecutiveSummary data={executiveSummary} />
             </div>
           )}
         </div>

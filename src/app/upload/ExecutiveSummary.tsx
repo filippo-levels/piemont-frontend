@@ -1,24 +1,25 @@
 import React from 'react';
 
-export default function ExecutiveSummary() {
-  // Simulated data for executive summary
-  const summaryData = {
-    stazioneAppaltante: "Comune di Torino - Direzione Infrastrutture",
-    oggetto: "Lavori di manutenzione straordinaria e riqualificazione della rete fognaria cittadina",
-    importo: "€ 12.450.000,00 (di cui € 380.000,00 per oneri di sicurezza non soggetti a ribasso)",
-    scadenza: "15/04/2024 ore 12:00",
-    identificativi: {
-      CIG: "9283746510",
-      CUP: "J45H22000180001",
-      CPV: "45231300-8"
-    },
-    rup: "Ing. Marco Rossi"
-  };
+interface ExecutiveSummaryProps {
+  data?: any;
+}
+
+export default function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
+  // If no data is provided, show a placeholder or loading state
+  if (!data) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Executive Summary</h2>
+        <p className="text-gray-500 italic">Carica un documento e premi "ANALIZZA" per visualizzare il riepilogo esecutivo.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800">Executive Summary</h2>
       <div className="space-y-4">
+        {/* Stazione Appaltante */}
         <div className="flex items-start">
           <div className="bg-blue-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -27,10 +28,11 @@ export default function ExecutiveSummary() {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">1. Stazione appaltante / Cliente</h3>
-            <p className="text-gray-600">{summaryData.stazioneAppaltante}</p>
+            <p className="text-gray-600">{data.stazione_appaltante || data.stazioneAppaltante || "Non specificato"}</p>
           </div>
         </div>
         
+        {/* Oggetto */}
         <div className="flex items-start">
           <div className="bg-green-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -39,10 +41,11 @@ export default function ExecutiveSummary() {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">2. Oggetto / tipologia lavori</h3>
-            <p className="text-gray-600">{summaryData.oggetto}</p>
+            <p className="text-gray-600">{data.oggetto || "Non specificato"}</p>
           </div>
         </div>
         
+        {/* Importo */}
         <div className="flex items-start">
           <div className="bg-yellow-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -51,10 +54,11 @@ export default function ExecutiveSummary() {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">3. Importo a base di gara</h3>
-            <p className="text-gray-600">{summaryData.importo}</p>
+            <p className="text-gray-600">{data.importo || "Non specificato"}</p>
           </div>
         </div>
         
+        {/* Scadenza */}
         <div className="flex items-start">
           <div className="bg-red-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -63,10 +67,11 @@ export default function ExecutiveSummary() {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">4. Scadenze per la presentazione delle offerte</h3>
-            <p className="text-gray-600">{summaryData.scadenza}</p>
+            <p className="text-gray-600">{data.scadenza || "Non specificato"}</p>
           </div>
         </div>
         
+        {/* Identificativi */}
         <div className="flex items-start">
           <div className="bg-purple-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -76,13 +81,14 @@ export default function ExecutiveSummary() {
           <div>
             <h3 className="text-lg font-medium text-gray-800">5. Identificativi principali</h3>
             <p className="text-gray-600">
-              CIG: {summaryData.identificativi.CIG}<br />
-              CUP: {summaryData.identificativi.CUP}<br />
-              CPV: {summaryData.identificativi.CPV}
+              CIG: {data.identificativi?.CIG || data.CIG || "Non specificato"}<br />
+              CUP: {data.identificativi?.CUP || data.CUP || "Non specificato"}<br />
+              CPV: {data.identificativi?.CPV || data.CPV || "Non specificato"}
             </p>
           </div>
         </div>
         
+        {/* RUP */}
         <div className="flex items-start">
           <div className="bg-indigo-100 p-3 rounded-full mr-4">
             <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -91,9 +97,50 @@ export default function ExecutiveSummary() {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">6. Responsabile Unico del Procedimento (RUP)</h3>
-            <p className="text-gray-600">{summaryData.rup}</p>
+            <p className="text-gray-600">{data.rup || "Non specificato"}</p>
           </div>
         </div>
+
+        {/* Additional fields from API if available */}
+        {data.procedura && (
+          <div className="flex items-start">
+            <div className="bg-pink-100 p-3 rounded-full mr-4">
+              <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-800">7. Procedura di gara</h3>
+              <p className="text-gray-600">{data.procedura}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Display any other fields that might be in the API response */}
+        {Object.entries(data).map(([key, value]) => {
+          // Skip fields we've already displayed
+          if (['stazione_appaltante', 'stazioneAppaltante', 'oggetto', 'importo', 'scadenza', 
+               'identificativi', 'CIG', 'CUP', 'CPV', 'rup', 'procedura'].includes(key)) {
+            return null;
+          }
+          
+          // Skip if value is an object or array (we'd need special handling for these)
+          if (typeof value === 'object') return null;
+          
+          return (
+            <div key={key} className="flex items-start">
+              <div className="bg-gray-100 p-3 rounded-full mr-4">
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-800">{key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</h3>
+                <p className="text-gray-600">{String(value)}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
