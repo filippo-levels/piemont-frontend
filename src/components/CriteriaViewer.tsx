@@ -43,48 +43,86 @@ const CriterioCard = ({
   isAllExpanded: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const paddingLeft = `${level * 1.5}rem`;
+  const paddingLeft = `${level * 1}rem`;
 
   // Update expansion state when isAllExpanded changes
   useEffect(() => {
     setIsExpanded(isAllExpanded);
   }, [isAllExpanded]);
 
+  const hasSubCriteri = criterio.subCriteri && criterio.subCriteri.length > 0;
+  
   return (
-    <div className="border rounded-lg mb-4 overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div className="mb-2">
       <div 
-        className={`p-4 cursor-pointer ${level === 0 ? 'bg-gray-50' : ''}`}
-        style={{ paddingLeft: `calc(1rem + ${paddingLeft})` }}
-        onClick={() => setIsExpanded(!isExpanded)}
+        className={`border rounded-lg transition-all duration-200 overflow-hidden ${
+          isExpanded ? 'shadow-md' : 'shadow-sm'
+        } ${level === 0 ? 'border-gray-300' : 'border-gray-200'}`}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-blue-600">{criterio.id}</span>
-              <h3 className="text-lg font-medium text-gray-900">{criterio.nome}</h3>
+        <div 
+          className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-4 ${
+            level === 0 
+              ? 'bg-gray-50' 
+              : level === 1 
+                ? 'bg-gray-50/50' 
+                : 'bg-white'
+          }`}
+          style={{ paddingLeft: `calc(${paddingLeft} + 0.75rem)` }}
+        >
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2">
+              {hasSubCriteri && (
+                <button 
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="p-1 mt-0.5 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0"
+                >
+                  <svg 
+                    className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'transform rotate-90' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-medium text-sm sm:text-base ${level === 0 ? 'text-gray-800' : 'text-gray-700'} truncate`}>
+                  {criterio.nome}
+                </h3>
+                {criterio.descrizione && (
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
+                    {criterio.descrizione}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="mt-1 text-sm text-blue-600 font-medium">
-              {criterio.punteggioMassimo}
-            </div>
-          </div>
-          <button 
-            className={`p-2 hover:bg-gray-100 rounded-full transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-          >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      
-      {isExpanded && (
-        <div className="px-4 pb-4" style={{ paddingLeft: `calc(1rem + ${paddingLeft})` }}>
-          <div className="mt-2 text-gray-600 text-sm whitespace-pre-wrap">
-            {criterio.descrizione}
           </div>
           
-          {criterio.subCriteri && criterio.subCriteri.length > 0 && (
-            <div className="mt-4">
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 mt-1 sm:mt-0">
+            {criterio.punteggioMassimo && (
+              <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded text-xs sm:text-sm text-blue-700 whitespace-nowrap">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Punti: {criterio.punteggioMassimo}</span>
+              </div>
+            )}
+            
+            {'criteriSimili' in criterio && criterio.criteriSimili && criterio.criteriSimili.length > 0 && (
+              <div className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded text-xs sm:text-sm text-purple-700 whitespace-nowrap">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span>{criterio.criteriSimili.length} simili</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {isExpanded && hasSubCriteri && (
+          <div className="border-t border-gray-200 p-2 sm:p-3">
+            <div className="space-y-2">
               {criterio.subCriteri.map((subCriterio) => (
                 <CriterioCard 
                   key={subCriterio.id} 
@@ -94,37 +132,43 @@ const CriterioCard = ({
                 />
               ))}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default function CriteriaViewer({ data }: CriteriaViewerProps) {
   const [isAllExpanded, setIsAllExpanded] = useState(false);
-
+  
+  if (!data || !data.criterias || !data.criterias.criteri) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Nessun criterio disponibile
+      </div>
+    );
+  }
+  
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Solo il pulsante espandi/comprimi */}
-      <div className="flex justify-end mb-6">
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <button
           onClick={() => setIsAllExpanded(!isAllExpanded)}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+          className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isAllExpanded ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
             )}
           </svg>
-          {isAllExpanded ? 'Comprimi tutto' : 'Espandi tutto'}
+          <span>{isAllExpanded ? 'Comprimi tutti' : 'Espandi tutti'}</span>
         </button>
       </div>
-
-      {/* Criteria list */}
-      <div className="space-y-4">
+      
+      <div className="space-y-3">
         {data.criterias.criteri.map((criterio) => (
           <CriterioCard 
             key={criterio.id} 

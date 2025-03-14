@@ -50,10 +50,11 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
       setCurrentPrefix(prefix);
       
       // Aggiorna breadcrumbs
-      if (prefix === '') {
-        setBreadcrumbs([]);
+      if (prefix) {
+        const parts = prefix.split('/').filter(Boolean);
+        setBreadcrumbs(parts);
       } else {
-        setBreadcrumbs(prefix.split('/'));
+        setBreadcrumbs([]);
       }
     } catch (error) {
       console.error('Error fetching S3 content:', error);
@@ -69,9 +70,10 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Quando clicchiamo su una cartella
    */
   const navigateToFolder = (folderName: string) => {
-    const newPrefix = currentPrefix ? `${currentPrefix}/${folderName}` : folderName;
-    // Reset del termine di ricerca quando si naviga in una cartella
-    setSearchTerm('');
+    const newPrefix = currentPrefix 
+      ? `${currentPrefix}${folderName}/` 
+      : `${folderName}/`;
+    
     fetchConsegnaContent(newPrefix);
   };
 
@@ -79,7 +81,6 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Reset alla root (prefix vuoto)
    */
   const resetToRoot = () => {
-    setSearchTerm('');
     fetchConsegnaContent('');
   };
 
@@ -87,13 +88,10 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Navigazione tramite breadcrumb
    */
   const navigateToBreadcrumb = (index: number) => {
-    if (index === -1) {
-      resetToRoot();
-      return;
-    }
+    // Ricostruiamo il prefix fino all'indice selezionato
+    const selectedParts = breadcrumbs.slice(0, index + 1);
+    const newPrefix = selectedParts.join('/') + '/';
     
-    setSearchTerm('');
-    const newPrefix = breadcrumbs.slice(0, index + 1).join('/');
     fetchConsegnaContent(newPrefix);
   };
 
@@ -101,28 +99,26 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Navigazione verso la cartella superiore
    */
   const navigateUp = () => {
-    if (breadcrumbs.length === 0) return;
-    
-    setSearchTerm('');
-    if (breadcrumbs.length === 1) {
-      resetToRoot();
-    } else {
-      const newPrefix = breadcrumbs.slice(0, breadcrumbs.length - 1).join('/');
-      fetchConsegnaContent(newPrefix);
+    if (breadcrumbs.length === 0) {
+      // Se siamo già alla root, non facciamo nulla
+      return;
     }
+    
+    // Rimuoviamo l'ultimo elemento dai breadcrumbs
+    const newBreadcrumbs = breadcrumbs.slice(0, -1);
+    const newPrefix = newBreadcrumbs.length > 0 
+      ? newBreadcrumbs.join('/') + '/' 
+      : '';
+    
+    fetchConsegnaContent(newPrefix);
   };
 
   /**
    * Apri file PDF in una nuova scheda
    */
   const openFile = (fileName: string) => {
-    // Per i file in consegna_prefix, dobbiamo specificare il percorso completo
-    // Costruiamo il percorso completo includendo il prefix corrente
-    const prefix = "disciplinari_consegna" + (currentPrefix ? '/' + currentPrefix : '');
-    
-    // Apri il file con il corretto prefisso usando il parametro query
-    const url = `http://localhost:8000/api/view_file/${encodeURIComponent(fileName)}?prefix=${encodeURIComponent(prefix)}`;
-    window.open(url, '_blank');
+    const fullPath = currentPrefix + fileName;
+    window.open(`http://localhost:8000/api/view_consegna/${encodeURIComponent(fullPath)}`, '_blank');
   };
 
   const isPDF = (fileName: string) => {
@@ -130,8 +126,10 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
   };
 
   const getFileIcon = (fileName: string) => {
-    if (isPDF(fileName)) return <File className="text-red-500" size={20} />;
-    return <File className="text-blue-500" size={20} />;
+    if (isPDF(fileName)) {
+      return <File className="text-red-500 flex-shrink-0" size={18} />;
+    }
+    return <File className="text-gray-500 flex-shrink-0" size={18} />;
   };
 
   // Filtra cartelle e file in base al termine di ricerca
@@ -146,31 +144,31 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       {/* Header con titolo, conteggio cartelle e barra di ricerca */}
-      <div className="p-4 border-b">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="p-3 sm:p-4 border-b">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Lista di Consegne</h2>
-            <p className="text-sm text-gray-500">{folders.length} cartelle disponibili</p>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">Lista di Consegne</h2>
+            <p className="text-xs sm:text-sm text-gray-500">{folders.length} cartelle disponibili</p>
           </div>
           
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
               <input
                 type="text"
                 placeholder="Cerca..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#3dcab1]"
+                className="w-full px-3 py-1.5 sm:py-2 border rounded-md text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#3dcab1]"
               />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
             </div>
             
             {currentPrefix && (
               <button 
                 onClick={navigateUp}
-                className="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors text-sm"
+                className="flex items-center justify-center gap-1 px-3 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors text-xs sm:text-sm"
               >
-                <ArrowLeft size={14} />
+                <ArrowLeft size={14} className="flex-shrink-0" />
                 <span>Indietro</span>
               </button>
             )}
@@ -178,21 +176,21 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
         </div>
         
         {/* Breadcrumb */}
-        <div className="flex items-center text-xs mt-2 overflow-x-auto">
+        <div className="flex items-center text-xs mt-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <button 
             onClick={resetToRoot}
-            className="flex items-center text-blue-600 hover:text-blue-800"
+            className="flex items-center text-blue-600 hover:text-blue-800 flex-shrink-0"
           >
-            <Home size={14} />
+            <Home size={12} className="flex-shrink-0" />
             <span className="ml-1">Home</span>
           </button>
           
           {breadcrumbs.map((crumb, index) => (
-            <div key={index} className="flex items-center">
-              <ChevronRight size={12} className="mx-1 text-gray-400" />
+            <div key={index} className="flex items-center flex-shrink-0">
+              <ChevronRight size={10} className="mx-1 text-gray-400 flex-shrink-0" />
               <button 
                 onClick={() => navigateToBreadcrumb(index)}
-                className="text-blue-600 hover:text-blue-800 truncate max-w-xs"
+                className="text-blue-600 hover:text-blue-800 truncate max-w-[100px] sm:max-w-[150px] md:max-w-xs"
               >
                 {crumb}
               </button>
@@ -202,29 +200,29 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-32 p-4">
-          <div className="animate-pulse text-gray-500 text-sm">Caricamento...</div>
+        <div className="flex justify-center items-center h-24 sm:h-32 p-4">
+          <div className="animate-pulse text-gray-500 text-xs sm:text-sm">Caricamento...</div>
         </div>
       ) : (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           {/* Sezione combinata per cartelle e file */}
           {filteredFolders.length === 0 && filteredFiles.length === 0 ? (
-            <div className="flex justify-center items-center h-32">
-              <p className="text-gray-500 italic text-sm">Nessun elemento trovato</p>
+            <div className="flex justify-center items-center h-24 sm:h-32">
+              <p className="text-gray-500 italic text-xs sm:text-sm">Nessun elemento trovato</p>
             </div>
           ) : (
-            <div className="overflow-y-auto pr-2" style={{ maxHeight: '500px' }}>
-              <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-2`}>
+            <div className="overflow-y-auto pr-1 sm:pr-2" style={{ maxHeight: '350px', scrollbarWidth: 'thin' }}>
+              <div className={`grid ${singleColumn ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-1.5 sm:gap-2`}>
                 {/* Prima mostriamo le cartelle */}
                 {filteredFolders.map((folder, index) => (
                   <div
                     key={`folder-${index}`}
                     onClick={() => navigateToFolder(folder)}
-                    className="flex items-center p-2 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex items-center p-1.5 sm:p-2 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
                   >
-                    <Folder className="text-yellow-500 mr-2 flex-shrink-0" size={20} />
-                    <span className="truncate text-sm flex-grow" title={folder}>{folder}</span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#3dcab1]"></div>
+                    <Folder className="text-yellow-500 mr-1.5 sm:mr-2 flex-shrink-0" size={16} />
+                    <span className="truncate text-xs sm:text-sm flex-grow" title={folder}>{folder}</span>
+                    <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#3dcab1] flex-shrink-0"></div>
                   </div>
                 ))}
                 
@@ -232,18 +230,18 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
                 {filteredFiles.map((file, index) => (
                   <div
                     key={`file-${index}`}
-                    className="flex items-center p-2 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex items-center p-1.5 sm:p-2 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => isPDF(file) && openFile(file)}
                   >
-                    <div className="flex items-center space-x-2 truncate flex-grow">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2 truncate flex-grow min-w-0">
                       {getFileIcon(file)}
-                      <span className={`truncate text-sm ${isPDF(file) ? 'text-blue-600 hover:underline' : ''}`} title={file}>
+                      <span className={`truncate text-xs sm:text-sm ${isPDF(file) ? 'text-blue-600 hover:underline' : ''}`} title={file}>
                         {file}
                       </span>
                     </div>
                     
                     {!isPDF(file) && (
-                      <span className="text-xs text-gray-500 italic">Non visualizzabile</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500 italic ml-1 flex-shrink-0">Non visualizzabile</span>
                     )}
                   </div>
                 ))}
