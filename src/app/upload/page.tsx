@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import FileUploader from "@/app/upload/FileUploader";
 import CriteriViewer from "@/app/upload/CriteriViewer";
 import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
+import { generatePDF } from "../../utils/pdfGenerator";
 
 const STORAGE_KEY = 'uploadAnalysisResult';
+const EXECUTIVE_SUMMARY_KEY = 'executiveSummaryResult';
 
 export default function UploadPage() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -18,6 +20,7 @@ export default function UploadPage() {
 
   // Carica i risultati dal localStorage all'avvio
   useEffect(() => {
+    // Carica i criteri estratti
     const savedResult = localStorage.getItem(STORAGE_KEY);
     if (savedResult) {
       try {
@@ -26,6 +29,21 @@ export default function UploadPage() {
       } catch (error) {
         console.error('Errore nel parsing dei dati salvati:', error);
         localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+    
+    // Carica l'executive summary
+    const savedSummary = localStorage.getItem(EXECUTIVE_SUMMARY_KEY);
+    if (savedSummary) {
+      try {
+        setExecutiveSummary(JSON.parse(savedSummary));
+        // Se non ci sono criteri estratti, mostra l'executive summary
+        if (!savedResult) {
+          setActiveView('executive');
+        }
+      } catch (error) {
+        console.error('Errore nel parsing dell\'executive summary salvato:', error);
+        localStorage.removeItem(EXECUTIVE_SUMMARY_KEY);
       }
     }
   }, []);
@@ -38,9 +56,10 @@ export default function UploadPage() {
     }
   }, [jsonResult]);
 
-  // Imposta la vista executive quando arriva il summary
+  // Salva l'executive summary nel localStorage quando cambia
   useEffect(() => {
     if (executiveSummary) {
+      localStorage.setItem(EXECUTIVE_SUMMARY_KEY, JSON.stringify(executiveSummary));
       setActiveView('executive');
     }
   }, [executiveSummary]);
@@ -50,12 +69,22 @@ export default function UploadPage() {
   };
 
   const handleRemoveAnalysis = () => {
+    // Rimuovi entrambi i dati dal localStorage
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(EXECUTIVE_SUMMARY_KEY);
+    
+    // Resetta lo stato
     setJsonResult(null);
     setExecutiveSummary(null);
     setLogs([]);
     setElapsedTime(0);
     setActiveView(null);
+  };
+
+  const handleExportToPDF = () => {
+    if (jsonResult) {
+      generatePDF([jsonResult]);
+    }
   };
 
   return (
@@ -103,31 +132,47 @@ export default function UploadPage() {
             />
           </div>
 
-          {/* View Selector Tabs (only show if we have results) */}
+          {/* View Selector Tabs with Download Button (only show if we have results) */}
           {(jsonResult || executiveSummary) && (
-            <div className="flex border-b border-gray-200 mb-4">
+            <div className="flex justify-between items-center border-b border-gray-200 mb-4">
+              <div className="flex">
+                {jsonResult && (
+                  <button
+                    onClick={() => setActiveView('criteri')}
+                    className={`py-2 px-4 font-medium ${
+                      activeView === 'criteri'
+                        ? 'border-b-2 border-[#3dcab1] text-[#3dcab1]'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Criteri Estratti
+                  </button>
+                )}
+                {executiveSummary && (
+                  <button
+                    onClick={() => setActiveView('executive')}
+                    className={`py-2 px-4 font-medium ${
+                      activeView === 'executive'
+                        ? 'border-b-2 border-blue-600 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Executive Summary
+                  </button>
+                )}
+              </div>
+              
+              {/* Download PDF button - common for both views */}
               {jsonResult && (
                 <button
-                  onClick={() => setActiveView('criteri')}
-                  className={`py-2 px-4 font-medium ${
-                    activeView === 'criteri'
-                      ? 'border-b-2 border-[#3dcab1] text-[#3dcab1]'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  onClick={handleExportToPDF}
+                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                  title="Scarica PDF con tutti i criteri"
                 >
-                  Criteri Estratti
-                </button>
-              )}
-              {executiveSummary && (
-                <button
-                  onClick={() => setActiveView('executive')}
-                  className={`py-2 px-4 font-medium ${
-                    activeView === 'executive'
-                      ? 'border-b-2 border-blue-600 text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Executive Summary
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Scarica PDF
                 </button>
               )}
             </div>

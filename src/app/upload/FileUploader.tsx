@@ -134,7 +134,6 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         setLogs((prev: string[]) => [...prev, errorMessage]);
       }
     } catch (error: any) {
-      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
       const errorMessage = `❌ Errore nell'estrazione criteri: ${error.message}`;
       setCurrentLog(errorMessage);
       setLogs((prev: string[]) => [...prev, errorMessage]);
@@ -188,7 +187,6 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         setLogs((prev: string[]) => [...prev, errorMessage]);
       }
     } catch (error: any) {
-      const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
       const errorMessage = `❌ Errore nella generazione dell'executive summary: ${error.message}`;
       setCurrentLog(errorMessage);
       setLogs((prev: string[]) => [...prev, errorMessage]);
@@ -373,7 +371,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
             className="w-4 h-4 text-[#3dcab1] bg-gray-100 border-gray-300 rounded focus:ring-[#3dcab1] focus:ring-2"
           />
           <label htmlFor="only-criteria-checkbox" className="ml-2 text-sm font-medium text-gray-700">
-            Disciplinare con solo criteri
+            File con solo criteri
           </label>
         </div>
         

@@ -2,8 +2,8 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import CriteriaViewer from "@/components/CriteriaViewer";
+import CriteriViewer from "@/app/upload/CriteriViewer";
 import ConsegnaList from "@/components/ConsegnaList";
-import SimilarCriteria from "@/components/SimilarCriteria";
 import axios from "axios";
 
 export default function DocumentPage() {
@@ -15,7 +15,7 @@ export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'consegne' | 'criteri'>('consegne');
   const criteriaRef = useRef<HTMLDivElement>(null);
   const consegneRef = useRef<HTMLDivElement>(null);
-  const [similarCriteria, setSimilarCriteria] = useState<any[]>([]);
+  const [similarCriteria, setSimilarCriteria] = useState<any>(null);
   const [showSimilarCriteria, setShowSimilarCriteria] = useState(false);
   const [loadingSimilarCriteria, setLoadingSimilarCriteria] = useState(false);
   
@@ -35,21 +35,24 @@ export default function DocumentPage() {
     try {
       setLoadingSimilarCriteria(true);
       
-      // Make sure filename includes .pdf
       const fileNameWithPdf = displayFileName.endsWith('.pdf') ? displayFileName : `${displayFileName}.pdf`;
       
-      console.log("Calling API with filename:", fileNameWithPdf);
-      
-      // Use GET with path parameter
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/search_criteri/${encodeURIComponent(fileNameWithPdf)}`
       );
       
-      console.log("Response data:", response.data);
-      setSimilarCriteria(response.data.data || []);
+      // Format the data for CriteriViewer - filter out the root element
+      const formattedData = {
+        // Only include the subCriteri from the root element, not the root itself
+        criteri: response.data.data.subCriteri || [],
+        data: response.data
+      };
+      
+      setSimilarCriteria(formattedData);
       setShowSimilarCriteria(true);
+      // Automatically switch to criteri tab to show the results
+      scrollToCriteria();
     } catch (error) {
-      console.error('Error fetching similar criteria:', error);
       alert('Errore durante il recupero dei criteri simili');
     } finally {
       setLoadingSimilarCriteria(false);
@@ -61,10 +64,6 @@ export default function DocumentPage() {
     setActiveTab('criteri');
   };
 
-  const scrollToConsegne = () => {
-    consegneRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setActiveTab('consegne');
-  };
 
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -99,23 +98,6 @@ export default function DocumentPage() {
           </div>
           <div className="flex flex-wrap w-full sm:w-auto items-center gap-2 sm:gap-3">
             <button
-              onClick={handleCalculateSimilarCriteria}
-              disabled={loadingSimilarCriteria || loading}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingSimilarCriteria ? (
-                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-              <span>Calcola Criteri Simili</span>
-            </button>
-            <button
               onClick={handleView}
               className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
             >
@@ -137,41 +119,7 @@ export default function DocumentPage() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 sticky top-16 md:top-20 z-10">
-          <div className="flex justify-center space-x-2 sm:space-x-4">
-            <button
-              onClick={scrollToConsegne}
-              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                activeTab === 'consegne' 
-                  ? 'bg-[#3dcab1] text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-1 sm:gap-2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Lista Consegne
-              </div>
-            </button>
-            <button
-              onClick={scrollToCriteria}
-              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                activeTab === 'criteri' 
-                  ? 'bg-[#3dcab1] text-white shadow-md' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-1 sm:gap-2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Criteri di Valutazione
-              </div>
-            </button>
-          </div>
-        </div>
+        
 
         {/* Main Content */}
         <div className="grid grid-cols-1 gap-4 sm:gap-8">
@@ -209,50 +157,57 @@ export default function DocumentPage() {
               
               {/* Criteri di Valutazione Section (Second) */}
               <div ref={criteriaRef} className="bg-white rounded-xl shadow-lg p-4 sm:p-8 scroll-mt-24 sm:scroll-mt-32">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-[#3dcab1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Criteri di Valutazione
-                </h2>
-                <CriteriaViewer data={criteriaData} />
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-[#3dcab1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Criteri di Valutazione
+                  </h2>
+                  
+                  {!showSimilarCriteria && (
+                    <button
+                      onClick={handleCalculateSimilarCriteria}
+                      disabled={loadingSimilarCriteria || loading}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors flex items-center justify-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingSimilarCriteria ? (
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                      <span>Calcola Criteri Simili</span>
+                    </button>
+                  )}
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  {loadingSimilarCriteria ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                      <svg className="animate-spin h-16 w-16 text-[#3dcab1] mb-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <p className="text-gray-600 font-medium">Calcolo criteri simili in corso...</p>
+                    </div>
+                  ) : showSimilarCriteria && similarCriteria ? (
+                    <CriteriViewer criteri={similarCriteria.criteri} data={similarCriteria.data} />
+                  ) : (
+                    <CriteriaViewer data={criteriaData} />
+                  )}
+                </div>
               </div>
             </>
           )}
         </div>
         
-        {/* Floating Navigation Button - only visible on mobile and small screens */}
-        <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 flex flex-col space-y-3 z-20">
-          <button 
-            onClick={scrollToConsegne}
-            className="p-2 sm:p-3 bg-[#3dcab1] text-white rounded-full shadow-lg hover:bg-[#35b6a0] transition-colors"
-            title="Vai alle consegne"
-            aria-label="Vai alle consegne"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </button>
-          <button 
-            onClick={scrollToCriteria}
-            className="p-2 sm:p-3 bg-[#3dcab1] text-white rounded-full shadow-lg hover:bg-[#35b6a0] transition-colors"
-            title="Vai ai criteri"
-            aria-label="Vai ai criteri"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-        </div>
+        
       </div>
-
-      {/* Similar Criteria Modal */}
-      {showSimilarCriteria && (
-        <SimilarCriteria 
-          similarCriteria={similarCriteria} 
-          onClose={() => setShowSimilarCriteria(false)} 
-        />
-      )}
     </div>
   );
 } 

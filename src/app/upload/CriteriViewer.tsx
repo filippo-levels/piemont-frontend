@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import JsonViewer from "../../components/JsonViewer";
 import ConsegnaList from "../../components/ConsegnaList";
-import { generatePDF } from "../../utils/pdfGenerator";
 
 interface Criterio {
   id: string;
@@ -126,13 +125,32 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Evita di attivare il toggle se si clicca su un pulsante o un link
+    if (
+      e.target instanceof HTMLElement && 
+      (e.target.tagName === 'BUTTON' || 
+       e.target.tagName === 'A' || 
+       e.target.closest('button') || 
+       e.target.closest('a'))
+    ) {
+      return;
+    }
+    
+    // Solo se il criterio è collassato, espandilo
+    if (collapsed) {
+      toggleCollapse(criterio.id);
+    }
+  };
+
   return (
     <div
       className={`border rounded-lg p-4 md:p-5 mb-5 shadow-sm hover:shadow-md transition-all duration-200 ${
         level === 0 ? "bg-white" : "bg-gray-50"
-      }`}
+      } ${collapsed ? "cursor-pointer" : ""}`}
       style={{ marginLeft: `${level * 20}px` }}
       ref={(el) => criterioRefs.current[criterio.id] = el}
+      onClick={handleCardClick}
     >
       {showConsegnaList ? (
         <div className="mb-4">
@@ -154,7 +172,10 @@ const CriterioCard: React.FC<{ criterio: Criterio; level?: number }> = ({
           <div className="flex flex-wrap md:flex-nowrap justify-between items-center mb-3 gap-2">
             <div className="flex items-center flex-grow min-w-0 group relative">
               <button 
-                onClick={() => toggleCollapse(criterio.id)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Previene la propagazione al div genitore
+                  toggleCollapse(criterio.id);
+                }}
                 className="mr-2 p-1 text-gray-500 hover:text-gray-800 focus:outline-none transition-colors flex-shrink-0"
                 aria-label={collapsed ? "Espandi" : "Comprimi"}
               >
@@ -426,9 +447,9 @@ export default function CriteriViewer({ criteri, data }: Props) {
   
   if (!criteri?.length) return null;
 
-  const handleExportToPDF = () => {
-    generatePDF(criteri);
-  };
+  // Ottieni i sottocriteri del criterio root (il primo elemento)
+  const rootCriterio = criteri[0];
+  const subCriteri = rootCriterio?.subCriteri || [];
 
   // Handlers for collapse state
   const toggleCollapse = (id: string) => {
@@ -466,7 +487,8 @@ export default function CriteriViewer({ criteri, data }: Props) {
   
   // Collapse all criteria
   const collapseAll = () => {
-    const allIds = collectAllCriteriaIds(criteri);
+    // Modifica per includere i sottocriteri invece dei criteri principali
+    const allIds = collectAllCriteriaIds(subCriteri);
     setCollapsedItems(allIds);
     setForceUpdate(prev => prev + 1); // Force update
   };
@@ -515,22 +537,6 @@ export default function CriteriViewer({ criteri, data }: Props) {
               </svg>
               {collapsedItems.size > 0 ? "Espandi tutti" : "Comprimi tutti"}
             </button>
-            <button
-              onClick={handleExportToPDF}
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
-              title="Scarica PDF con tutti i criteri"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Scarica PDF
-            </button>
-            <button
-              onClick={() => setShowJson(!showJson)}
-              className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              {showJson ? "Mostra Criteri" : "Mostra JSON"}
-            </button>
           </div>
         </div>
 
@@ -540,7 +546,8 @@ export default function CriteriViewer({ criteri, data }: Props) {
           </div>
         ) : (
           <div>
-            {criteri.map((criterio) => (
+            {/* Mostra direttamente i sottocriteri invece del criterio root */}
+            {subCriteri.map((criterio) => (
               <CriterioCard 
                 key={criterio.id} 
                 criterio={criterio}
