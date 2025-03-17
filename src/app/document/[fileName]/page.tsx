@@ -152,7 +152,7 @@ export default function DocumentPage() {
                   </svg>
                   Lista Consegne
                 </h2>
-                <ConsegnaList initialSearchTerm={searchFileName} singleColumn={true} />
+                <ConsegnaList key={`consegna-list-${searchFileName}`} initialSearchTerm={searchFileName} singleColumn={true} />
               </div>
               
               {/* Criteri di Valutazione Section (Second) */}

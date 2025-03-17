@@ -83,7 +83,7 @@ export default function UploadPage() {
 
   const handleExportToPDF = () => {
     if (jsonResult) {
-      generatePDF([jsonResult]);
+      generatePDF([jsonResult], executiveSummary);
     }
   };
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Folder, File, Home, ChevronRight, Eye, Download, ArrowLeft, Search } from 'lucide-react';
 
 interface ConsegnaListProps {
@@ -14,19 +14,35 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
   const [currentPrefix, setCurrentPrefix] = useState('');
   const [breadcrumbs, setBreadcrumbs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchTerm, setSearchTerm] = useState('');
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     // Al primo render, carichiamo la "root" di consegna (prefix vuoto)
     fetchConsegnaContent('');
+    
+    // Set the initial search term only on first render
+    if (isFirstRender.current && initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
+      isFirstRender.current = false;
+    }
   }, []);
 
-  // Aggiorniamo il termine di ricerca quando cambia initialSearchTerm
+  // Add a new effect to automatically navigate to the matching folder when initialSearchTerm is provided
   useEffect(() => {
-    if (initialSearchTerm) {
-      setSearchTerm(initialSearchTerm);
+    // Only run this effect once and only if initialSearchTerm is provided
+    if (initialSearchTerm && folders.length > 0) {
+      // Find a folder that matches the initialSearchTerm
+      const matchingFolder = folders.find(folder => 
+        folder.toLowerCase().includes(initialSearchTerm.toLowerCase())
+      );
+      
+      // If a matching folder is found, navigate to it and clear the search term
+      if (matchingFolder) {
+        navigateToFolder(matchingFolder);
+      }
     }
-  }, [initialSearchTerm]);
+  }, [folders, initialSearchTerm]);
 
   /**
    * Funzione per chiamare il backend e ottenere folders e files
@@ -37,8 +53,8 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
 
       // Costruiamo la URL con o senza query param 'prefix'
       const url = prefix
-        ? `http://localhost:8000/api/list_consegna?prefix=${encodeURIComponent(prefix)}`
-        : `http://localhost:8000/api/list_consegna`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/list_consegna?prefix=${encodeURIComponent(prefix)}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/list_consegna`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch S3 contents');
@@ -53,6 +69,9 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
       if (prefix) {
         const parts = prefix.split('/').filter(Boolean);
         setBreadcrumbs(parts);
+        
+        // Always clear the search term when we're inside a folder
+        setSearchTerm('');
       } else {
         setBreadcrumbs([]);
       }
@@ -70,6 +89,9 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Quando clicchiamo su una cartella
    */
   const navigateToFolder = (folderName: string) => {
+    // Clear the search term immediately
+    setSearchTerm('');
+    
     const newPrefix = currentPrefix 
       ? `${currentPrefix}${folderName}/` 
       : `${folderName}/`;
@@ -81,6 +103,8 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Reset alla root (prefix vuoto)
    */
   const resetToRoot = () => {
+    // Clear the search term when resetting to root
+    setSearchTerm('');
     fetchConsegnaContent('');
   };
 
@@ -92,6 +116,8 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
     const selectedParts = breadcrumbs.slice(0, index + 1);
     const newPrefix = selectedParts.join('/') + '/';
     
+    // Clear the search term when navigating via breadcrumb
+    setSearchTerm('');
     fetchConsegnaContent(newPrefix);
   };
 
@@ -110,6 +136,8 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
       ? newBreadcrumbs.join('/') + '/' 
       : '';
     
+    // Clear the search term when navigating up
+    setSearchTerm('');
     fetchConsegnaContent(newPrefix);
   };
 
@@ -117,8 +145,30 @@ export default function ConsegnaList({ onError, initialSearchTerm = '', singleCo
    * Apri file PDF in una nuova scheda
    */
   const openFile = (fileName: string) => {
-    const fullPath = currentPrefix + fileName;
-    window.open(`http://localhost:8000/api/view_consegna/${encodeURIComponent(fullPath)}`, '_blank');
+    // For debugging
+    console.log('Opening file:', fileName);
+    console.log('Current prefix:', currentPrefix);
+    
+    // Based on the backend code, we need to use the view_file endpoint
+    // with the file_name in the path and the prefix as a query parameter
+    
+    // The prefix should be "disciplinari_consegna/CURRENT_PREFIX"
+    let prefix = '';
+    
+    if (currentPrefix) {
+      // If we're in a subfolder, the prefix should include the current path
+      prefix = `disciplinari_consegna/${currentPrefix.slice(0, -1)}`; // Remove trailing slash
+    } else {
+      // If we're at the root, the prefix should just be disciplinari_consegna
+      prefix = 'disciplinari_consegna';
+    }
+    
+    console.log('Using prefix:', prefix);
+    
+    // Construct the URL with the file name in the path and the prefix as a query parameter
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/view_file/${encodeURIComponent(fileName)}?prefix=${encodeURIComponent(prefix)}`;
+    console.log('Opening URL:', url);
+    window.open(url, '_blank');
   };
 
   const isPDF = (fileName: string) => {

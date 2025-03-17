@@ -379,7 +379,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           {/* Estrazione Criteri Button */}
           <button 
             onClick={handleAnalyzeCriteri} 
-            disabled={fullAnalyzeLoading || !file}
+            disabled={fullAnalyzeLoading || executiveSummaryLoading || !file}
             className="px-6 py-2 bg-[#3dcab1] text-[#fefefe] rounded-lg
               disabled:opacity-50 hover:bg-[#3dcab1]/90 
               transition-all duration-200 font-medium shadow-sm
@@ -434,7 +434,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           {/* Executive Summary Button */}
           <button 
             onClick={handleExecutiveSummary} 
-            disabled={executiveSummaryLoading || !file}
+            disabled={executiveSummaryLoading || fullAnalyzeLoading || !file}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg
               disabled:opacity-50 hover:bg-blue-700 
               transition-all duration-200 font-medium shadow-sm
