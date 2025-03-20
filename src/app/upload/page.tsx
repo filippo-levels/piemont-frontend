@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/app/upload/FileUploader";
-import CriteriViewer from "@/app/upload/CriteriViewer";
+import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
 import { generatePDF } from "../../utils/pdfGenerator";
 
@@ -181,8 +181,8 @@ export default function UploadPage() {
           {/* Conditional Rendering of Results */}
           {activeView === 'criteri' && jsonResult && (
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <CriteriViewer 
-                criteri={[jsonResult]}
+              <CriteriSimiliViewer 
+                criteri={jsonResult.criteri || []}
                 data={{
                   file_name: jsonResult.file_name || "Documento caricato",
                   data_ora: new Date().toISOString(),

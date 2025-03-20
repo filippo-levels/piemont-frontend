@@ -1,8 +1,8 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import CriteriaViewer from "@/components/CriteriaViewer";
-import CriteriViewer from "@/app/upload/CriteriViewer";
+import CriteriaViewer from "@/app/document/[fileName]/CriteriaViewer";
+import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ConsegnaList from "@/components/ConsegnaList";
 import axios from "axios";
 
@@ -41,11 +41,12 @@ export default function DocumentPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/search_criteri/${encodeURIComponent(fileNameWithPdf)}`
       );
       
-      // Format the data for CriteriViewer - filter out the root element
+      // The API now returns the data directly, so we need to extract the subCriteri
+      const criteriaData = response.data.data;
       const formattedData = {
         // Only include the subCriteri from the root element, not the root itself
-        criteri: response.data.data.subCriteri || [],
-        data: response.data
+        criteri: criteriaData.subCriteri || [],
+        data: criteriaData
       };
       
       setSimilarCriteria(formattedData);
@@ -70,8 +71,25 @@ export default function DocumentPage() {
       try {
         setLoading(true);
         setError(null);
+        
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`);
-        setCriteriaData(response.data);
+        
+        // Handle the nested structure where criteria data might be inside a data property
+        // Check if criteria is directly in response.data or inside response.data.data
+        if (response.data && typeof response.data === 'object') {
+          if (response.data.data && typeof response.data.data === 'object') {
+            // The response has a nested structure { data: { criteri: [...] } }
+            setCriteriaData(response.data);
+          } else if (response.data.criteri && Array.isArray(response.data.criteri)) {
+            // The response has a direct structure { criteri: [...] }
+            setCriteriaData(response.data);
+          } else {
+            // Try with the entire response as fallback
+            setCriteriaData(response.data);
+          }
+        } else {
+          setError('Formato di risposta non valido');
+        }
       } catch (error: any) {
         console.error('Error fetching criteria:', error);
         setError('Errore durante il recupero dei criteri. Riprova più tardi.');
@@ -92,7 +110,9 @@ export default function DocumentPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 break-words">{displayFileName}</h1>
             {!loading && !error && criteriaData && (
               <p className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-2">
-                Ultimo aggiornamento: {new Date(criteriaData.criterias.data_ora).toLocaleString('it-IT')}
+                Ultimo aggiornamento: {new Date(
+                  (criteriaData.data_ora || criteriaData.data?.data_ora || new Date())
+                ).toLocaleString('it-IT')}
               </p>
             )}
           </div>
@@ -196,7 +216,10 @@ export default function DocumentPage() {
                       <p className="text-gray-600 font-medium">Calcolo criteri simili in corso...</p>
                     </div>
                   ) : showSimilarCriteria && similarCriteria ? (
-                    <CriteriViewer criteri={similarCriteria.criteri} data={similarCriteria.data} />
+                    <CriteriSimiliViewer 
+                      criteri={similarCriteria.criteri} 
+                      data={similarCriteria.data}
+                    />
                   ) : (
                     <CriteriaViewer data={criteriaData} />
                   )}
@@ -205,7 +228,6 @@ export default function DocumentPage() {
             </>
           )}
         </div>
-        
         
       </div>
     </div>

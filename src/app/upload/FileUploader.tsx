@@ -1,6 +1,5 @@
 import React, { useState, Dispatch, SetStateAction, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 
 interface FileUploaderProps {
   setLogs: Dispatch<SetStateAction<string[]>>;
@@ -115,15 +114,21 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
     formData.append("bool_short", onlyCriteria.toString());
 
     try {
-      // Call full_analyze API
+      // Call criterias_extraction API
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/full_analyze`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/criterias_extraction`,
         formData
       );
 
+      // The API now returns data directly in the data property
       const data = response.data?.data;
       if (data) {
-        setJsonResult(data);
+        // Set the data with the correct file name
+        setJsonResult({
+          file_name: file.name,
+          criteri: data.subCriteri || []
+        });
+        
         const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
         const completionMessage = `✅ Estrazione criteri completata con successo in ${timeElapsed.toFixed(2)} secondi.`;
         setCurrentLog(completionMessage);

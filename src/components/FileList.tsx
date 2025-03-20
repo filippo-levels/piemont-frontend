@@ -92,7 +92,7 @@ export default function FileList({ onError, setFile, setLogs }: FileListProps) {
   const handleView = (fileName: string) => {
     // Qui puoi implementare la logica per visualizzare il file
     console.log(`Visualizzazione del file: ${fileName}`);
-    window.open(`http://localhost:8000/api/view_file/${fileName}`, '_blank');
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/view_file/${fileName}`, '_blank');
   };
 
   return (

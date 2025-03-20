@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import CriteriViewer from "../app/upload/CriteriViewer";
+import CriteriSimiliViewer from "../app/upload/CriteriSimiliViewer";
 
 interface Props {
   data: any;

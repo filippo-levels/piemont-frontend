@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import CriteriViewer from "@/app/upload/CriteriViewer";
+import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import axios from "axios";
 
 export default function CriteriaPage() {
@@ -89,7 +89,7 @@ export default function CriteriaPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <CriteriViewer 
+            <CriteriSimiliViewer 
               criteri={criteriaData.criteri || []} 
               data={criteriaData} 
             />
