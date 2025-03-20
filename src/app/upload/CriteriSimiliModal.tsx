@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ConsegnaList from "../../components/ConsegnaList";
 import { Criterio } from "../../types/criterio";
+import { submitCriterioFeedback, extractFilename, getOriginalFilename } from "../../lib/supabase";
 
 interface CriteriSimiliModalProps {
   isOpen: boolean;
@@ -21,6 +22,10 @@ const CriteriSimiliModal: React.FC<CriteriSimiliModalProps> = ({
     filename: string;
   } | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   // Control body overflow when modal opens/closes
   useEffect(() => {
@@ -65,6 +70,50 @@ const CriteriSimiliModal: React.FC<CriteriSimiliModalProps> = ({
     filename: string;
   }) => {
     setSelectedSimilarCriterio(similarCriterio);
+  };
+
+  const openFeedbackModal = () => {
+    setFeedbackModalOpen(true);
+    setFeedbackComment('');
+    setFeedbackSuccess(false);
+  };
+
+  const closeFeedbackModal = () => {
+    setFeedbackModalOpen(false);
+  };
+
+  const submitFeedback = async () => {
+    if (!selectedSimilarCriterio) return;
+    
+    setSubmittingFeedback(true);
+    
+    try {
+      // Get the original uploaded filename from localStorage
+      const originalFilename = getOriginalFilename() || extractFilename(criterio.id);
+      
+      // Extract similar criterio filename
+      const similarFilename = extractFilename(selectedSimilarCriterio.filename);
+      
+      const { error } = await submitCriterioFeedback({
+        filename: originalFilename,
+        criterio_id: criterio.id,
+        similar_criterio_id: selectedSimilarCriterio.criterio_id,
+        similar_filename: similarFilename,
+        user_comment: feedbackComment
+      });
+      
+      if (error) throw error;
+      
+      setFeedbackSuccess(true);
+      setTimeout(() => {
+        closeFeedbackModal();
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Si è verificato un errore durante l\'invio del feedback.');
+    } finally {
+      setSubmittingFeedback(false);
+    }
   };
 
   return (
@@ -174,7 +223,7 @@ const CriteriSimiliModal: React.FC<CriteriSimiliModalProps> = ({
                         <p className="text-sm text-gray-700 leading-relaxed my-2 border-t border-b border-gray-100 py-2">
                           {similarCriterio.documents}
                         </p>
-                        <div className="mt-2">
+                        <div className="mt-2 flex items-center gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -187,6 +236,19 @@ const CriteriSimiliModal: React.FC<CriteriSimiliModalProps> = ({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                             Apri PDF
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openFeedbackModal();
+                            }}
+                            className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors flex items-center text-sm"
+                            title="Segnala criterio non pertinente"
+                          >
+                            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M9 16h6" />
+                            </svg>
+                            Feedback
                           </button>
                         </div>
                       </>
@@ -222,6 +284,75 @@ const CriteriSimiliModal: React.FC<CriteriSimiliModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Feedback Modal */}
+      {feedbackModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Segnala Criterio Non Pertinente
+              </h3>
+              <button
+                onClick={closeFeedbackModal}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Ci dispiace che questo criterio simile non sia utile. Aiutaci a migliorare spiegando perché ritieni che non sia pertinente:
+              </p>
+              
+              <textarea 
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3dcab1] focus:border-[#3dcab1] h-32 text-sm"
+                placeholder="Descrivi brevemente perché ritieni che questo criterio non sia pertinente..."
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+                disabled={submittingFeedback || feedbackSuccess}
+              ></textarea>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeFeedbackModal}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                disabled={submittingFeedback || feedbackSuccess}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={submitFeedback}
+                className="px-4 py-2 bg-[#3dcab1] text-white rounded-md hover:bg-[#35b39d] transition-colors text-sm flex items-center"
+                disabled={submittingFeedback || feedbackSuccess || !feedbackComment.trim()}
+              >
+                {submittingFeedback ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Invio...
+                  </>
+                ) : feedbackSuccess ? (
+                  <>
+                    <svg className="h-4 w-4 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Inviato!
+                  </>
+                ) : (
+                  'Invia Feedback'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

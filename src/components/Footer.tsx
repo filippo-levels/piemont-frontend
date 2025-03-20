@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="bg-black text-white py-8 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h3 className="text-lg font-semibold mb-4">LEVELS OG</h3>
             <p className="text-gray-400 text-sm">
@@ -14,23 +14,7 @@ export default function Footer() {
             </p>
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Link Utili</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/?tab=upload" className="text-gray-400 hover:text-white text-sm transition-colors">
-                  Upload
-                </Link>
-              </li>
-              <li>
-                <Link href="/?tab=gestionale" className="text-gray-400 hover:text-white text-sm transition-colors">
-                  Gestionale
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
+          <div className="md:text-right">
             <h3 className="text-lg font-semibold mb-4">Contatti</h3>
             <p className="text-gray-400 text-sm">
               Per informazioni o supporto, contattaci all'indirizzo email: <br />
@@ -41,9 +25,7 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-400 text-sm">
-          © {currentYear} LEVELS OG. Tutti i diritti riservati.
-        </div>
+
       </div>
     </footer>
   );

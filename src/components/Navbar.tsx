@@ -28,8 +28,8 @@ export default function Navbar() {
               <Image
                 src="/images/levels_og_logo.png"
                 alt="Levels OG Logo"
-                width={80}
-                height={80}
+                width={120}
+                height={120}
                 className="object-contain"
               />
             </a>
@@ -71,9 +71,7 @@ export default function Navbar() {
               </svg>
               Lucy
             </Link>
-            <button className="relative overflow-hidden text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 ease-in-out bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/25">
-              Login
-            </button>
+
           </div>
           
           {/* Mobile menu button */}
@@ -121,9 +119,6 @@ export default function Navbar() {
               </svg>
               Lucy
             </Link>
-            <button className="w-full text-white px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-              Login
-            </button>
           </div>
           
           {/* Small Levels logo in mobile menu */}
@@ -132,8 +127,8 @@ export default function Navbar() {
               <Image
                 src="/images/levels_og_logo.png"
                 alt="Levels OG Logo"
-                width={60}
-                height={60}
+                width={80}
+                height={80}
                 className="object-contain"
               />
               <span className="ml-2 text-sm text-gray-400">Powered by Levels</span>
