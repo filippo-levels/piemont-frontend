@@ -5,6 +5,10 @@ import CriteriaViewer from "@/app/document/[fileName]/CriteriaViewer";
 import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ConsegnaList from "@/components/ConsegnaList";
 import axios from "axios";
+import JsonDebugViewer from "@/app/upload/components/JsonDebugViewer";
+
+// Storage key for debug purposes
+const SIMILAR_CRITERIA_DEBUG_KEY = 'similarCriteriaRawJsonResponse';
 
 export default function DocumentPage() {
   const params = useParams();
@@ -18,6 +22,7 @@ export default function DocumentPage() {
   const [similarCriteria, setSimilarCriteria] = useState<any>(null);
   const [showSimilarCriteria, setShowSimilarCriteria] = useState(false);
   const [loadingSimilarCriteria, setLoadingSimilarCriteria] = useState(false);
+  const [similarCriteriaRawJson, setSimilarCriteriaRawJson] = useState<any>(null);
   
   const fileName = decodeURIComponent(params.fileName as string);
   const displayFileName = fileName.replace('.json', '');
@@ -41,11 +46,18 @@ export default function DocumentPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/search_criteri/${encodeURIComponent(fileNameWithPdf)}`
       );
       
-      // The API now returns the data directly, so we need to extract the subCriteri
-      const criteriaData = response.data.data;
+      // Store raw response for debugging
+      setSimilarCriteriaRawJson(response.data);
+      
+      // Save to localStorage for persistence
+      localStorage.setItem(SIMILAR_CRITERIA_DEBUG_KEY, JSON.stringify(response.data));
+      
+      // New API response structure doesn't have data wrapper
+      const criteriaData = response.data;
+      
+      // Format data structure for the viewer component
       const formattedData = {
-        // Only include the subCriteri from the root element, not the root itself
-        criteri: criteriaData.subCriteri || [],
+        criteri: criteriaData.criteri || [],
         data: criteriaData
       };
       
@@ -54,6 +66,7 @@ export default function DocumentPage() {
       // Automatically switch to criteri tab to show the results
       scrollToCriteria();
     } catch (error) {
+      console.error('Error calculating similar criteria:', error);
       alert('Errore durante il recupero dei criteri simili');
     } finally {
       setLoadingSimilarCriteria(false);
@@ -65,6 +78,17 @@ export default function DocumentPage() {
     setActiveTab('criteri');
   };
 
+  // Load saved similar criteria JSON on component mount
+  useEffect(() => {
+    try {
+      const savedJson = localStorage.getItem(SIMILAR_CRITERIA_DEBUG_KEY);
+      if (savedJson) {
+        setSimilarCriteriaRawJson(JSON.parse(savedJson));
+      }
+    } catch (error) {
+      console.error('Error loading saved similar criteria JSON:', error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -74,14 +98,13 @@ export default function DocumentPage() {
         
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`);
         
-        // Handle the nested structure where criteria data might be inside a data property
-        // Check if criteria is directly in response.data or inside response.data.data
+        // Handle the new response structure directly
         if (response.data && typeof response.data === 'object') {
-          if (response.data.data && typeof response.data.data === 'object') {
-            // The response has a nested structure { data: { criteri: [...] } }
+          if (response.data.criteri && Array.isArray(response.data.criteri)) {
+            // Direct structure with criteri array - new API format
             setCriteriaData(response.data);
-          } else if (response.data.criteri && Array.isArray(response.data.criteri)) {
-            // The response has a direct structure { criteri: [...] }
+          } else if (response.data.data && response.data.data.criteri) {
+            // Handle legacy structure with data wrapper for backwards compatibility
             setCriteriaData(response.data);
           } else {
             // Try with the entire response as fallback
@@ -216,10 +239,24 @@ export default function DocumentPage() {
                       <p className="text-gray-600 font-medium">Calcolo criteri simili in corso...</p>
                     </div>
                   ) : showSimilarCriteria && similarCriteria ? (
-                    <CriteriSimiliViewer 
-                      criteri={similarCriteria.criteri} 
-                      data={similarCriteria.data}
-                    />
+                    <>
+                      <CriteriSimiliViewer 
+                        criteri={similarCriteria.criteri} 
+                        data={similarCriteria.data}
+                      />
+                      
+                      {/* Debug JSON viewer for similar criteria */}
+                      {similarCriteriaRawJson && (
+                        <div className="mt-6 border-t pt-4">
+                          <div className="custom-json-debug">
+                            <JsonDebugViewer 
+                              type="criteri"
+                              jsonData={similarCriteriaRawJson}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <CriteriaViewer data={criteriaData} />
                   )}
