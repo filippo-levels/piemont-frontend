@@ -6,6 +6,7 @@ import { Inter, Lexend } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Toaster } from '@/components/ui/toaster';
 
 const fontSans = Lexend({
   variable: "--font-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

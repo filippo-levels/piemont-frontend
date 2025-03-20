@@ -6,9 +6,19 @@ import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
 import { generatePDF } from "../../utils/pdfGenerator";
 import { clearAllJsonDebugData } from "./components/JsonDebugViewer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Trash2, Download, FileText, BarChart2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = 'uploadAnalysisResult';
 const EXECUTIVE_SUMMARY_KEY = 'executiveSummaryResult';
+
+const tabVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+};
 
 export default function UploadPage() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -93,116 +103,137 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="max-w-6xl mx-auto p-6 space-y-6 pt-24">
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold text-gray-800">
-              Analizza un disciplinare di gara
-            </h1>
-            <div className="flex gap-3">
-              {(jsonResult || executiveSummary) && (
-                <button
-                  onClick={handleRemoveAnalysis}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+    <div className="min-h-screen bg-background">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-normal">
+                Analizza un disciplinare di gara
+              </CardTitle>
+              <div className="flex gap-3">
+                {(jsonResult || executiveSummary) && (
+                  <Button
+                    onClick={handleRemoveAnalysis}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Rimuovi
+                  </Button>
+                )}
+                <Button
+                  onClick={handleBack}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Rimuovi analisi
-                </button>
-              )}
-              <button
-                onClick={handleBack}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Torna alla Home
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-lg p-8 mx-auto">
-            <FileUploader 
-              ref={fileUploaderRef}
-              setLogs={setLogs} 
-              setJsonResult={setJsonResult} 
-              setElapsedTime={setElapsedTime}
-              setExecutiveSummary={setExecutiveSummary}
-              onRemove={handleRemoveAnalysis}
-            />
-          </div>
-
-          {/* View Selector Tabs with Download Button (only show if we have results) */}
-          {(jsonResult || executiveSummary) && (
-            <div className="flex justify-between items-center border-b border-gray-200 mb-4">
-              <div className="flex">
-                {jsonResult && (
-                  <button
-                    onClick={() => setActiveView('criteri')}
-                    className={`py-2 px-4 font-medium ${
-                      activeView === 'criteri'
-                        ? 'border-b-2 border-[#3dcab1] text-[#3dcab1]'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Criteri Estratti
-                  </button>
-                )}
-                {executiveSummary && (
-                  <button
-                    onClick={() => setActiveView('executive')}
-                    className={`py-2 px-4 font-medium ${
-                      activeView === 'executive'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Executive Summary
-                  </button>
-                )}
+                  <ArrowLeft className="h-4 w-4" />
+                  Home
+                </Button>
               </div>
-              
-              {/* Download PDF button - common for both views */}
-              {jsonResult && (
-                <button
-                  onClick={handleExportToPDF}
-                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
-                  title="Scarica PDF con tutti i criteri"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Scarica PDF
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Conditional Rendering of Results */}
-          {activeView === 'criteri' && jsonResult && (
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <CriteriSimiliViewer 
-                criteri={jsonResult.criteri || []}
-                data={{
-                  file_name: jsonResult.file_name || "Documento caricato",
-                  data_ora: new Date().toISOString(),
-                  metadata: jsonResult.metadata || {}
-                }}
+            </CardHeader>
+            <CardContent>
+              <FileUploader 
+                ref={fileUploaderRef}
+                setLogs={setLogs} 
+                setJsonResult={setJsonResult} 
+                setElapsedTime={setElapsedTime}
+                setExecutiveSummary={setExecutiveSummary}
+                onRemove={handleRemoveAnalysis}
               />
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {activeView === 'executive' && executiveSummary && (
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <ExecutiveSummary data={executiveSummary} />
-            </div>
+        {/* Results Section */}
+        <AnimatePresence>
+          {(jsonResult || executiveSummary) && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Card className="border-none shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xl font-normal">
+                    Risultati dell'analisi
+                  </CardTitle>
+                  <Button
+                    onClick={handleExportToPDF}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-primary border-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Esporta PDF
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <Tabs 
+                    defaultValue={activeView || 'criteri'} 
+                    value={activeView || 'criteri'}
+                    onValueChange={(value) => setActiveView(value as 'criteri' | 'executive')}
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 rounded-xl overflow-hidden p-1 bg-gray-100">
+                      <TabsTrigger 
+                        value="criteri" 
+                        disabled={!jsonResult}
+                        className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:font-medium flex items-center gap-2 py-2.5"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Criteri Estratti
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="executive" 
+                        disabled={!executiveSummary}
+                        className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:font-medium flex items-center gap-2 py-2.5"
+                      >
+                        <BarChart2 className="h-4 w-4" />
+                        Executive Summary
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <AnimatePresence mode="wait">
+                      <TabsContent value="criteri" className="mt-0">
+                        {jsonResult && (
+                          <motion.div
+                            key="criteri"
+                            variants={tabVariants}
+                            initial="hidden"
+                            animate="visible"
+                          >
+                            <CriteriSimiliViewer data={jsonResult} elapsedTime={elapsedTime} />
+                          </motion.div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="executive" className="mt-0">
+                        {executiveSummary && (
+                          <motion.div
+                            key="executive"
+                            variants={tabVariants}
+                            initial="hidden"
+                            animate="visible"
+                          >
+                            <ExecutiveSummary data={executiveSummary} />
+                          </motion.div>
+                        )}
+                      </TabsContent>
+                    </AnimatePresence>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
     </div>
   );

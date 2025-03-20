@@ -7,12 +7,12 @@ interface Message {
   timestamp: Date;
 }
 
-export default function AppalTinaChat() {
+export default function LucyChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Ciao! Sono AppalTina, l\'assistente virtuale per i disciplinari di gara. Come posso aiutarti oggi?',
+      text: 'Ciao! Sono Lucy, l\'assistente virtuale per i disciplinari di gara. Come posso aiutarti oggi?',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -121,7 +121,7 @@ export default function AppalTinaChat() {
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-              <h3 className="font-semibold">AppalTina</h3>
+              <h3 className="font-semibold">Lucy</h3>
             </div>
             <button onClick={toggleChat} className="text-white hover:text-gray-200 transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

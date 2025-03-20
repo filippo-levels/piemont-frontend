@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
+import { Upload, FileText } from 'lucide-react';
 
 interface DragDropAreaProps {
   onFileSelect: (file: File) => void;
@@ -59,14 +60,16 @@ const DragDropArea: React.FC<DragDropAreaProps> = ({ onFileSelect, file }) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative group flex flex-col items-center justify-center p-6 rounded-lg
+      className={`
+        relative group flex flex-col items-center justify-center p-8 rounded-lg
         border-2 border-dashed transition-all duration-300 cursor-pointer
         ${isDragging 
-          ? "border-[#3dcab1] bg-[#3dcab1]/10" 
+          ? "border-primary bg-primary/5" 
           : file 
-            ? "border-[#3dcab1] bg-[#3dcab1]/5" 
-            : "border-gray-300 hover:border-[#3dcab1] hover:bg-gray-50"
-        }`}
+            ? "border-primary/50 bg-primary/5" 
+            : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30"
+        }
+      `}
       onClick={() => fileInputRef.current?.click()}
     >
       <input 
@@ -77,34 +80,41 @@ const DragDropArea: React.FC<DragDropAreaProps> = ({ onFileSelect, file }) => {
         className="hidden"
       />
       
-      <div className="flex flex-row items-center gap-4 w-full justify-center">
-        <svg 
-          className={`w-12 h-12 ${isDragging ? "text-[#3dcab1]" : "text-gray-400"}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-          />
-        </svg>
-        
+      <div className="flex flex-col items-center text-center gap-3 w-full justify-center">
         {file ? (
-          <div className="flex flex-col">
-            <p className="text-lg font-medium text-[#3dcab1]">{file.name}</p>
-            <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-          </div>
+          <>
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <FileText className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base font-medium text-primary">{file.name}</p>
+              <p className="text-sm text-muted-foreground mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+          </>
         ) : (
-          <div className="flex flex-col">
-            <p className="text-lg font-medium text-gray-700">
-              {isDragging ? "Rilascia qui il file" : "Trascina qui il tuo PDF"}
-            </p>
-            <p className="text-sm text-gray-500">oppure clicca per selezionare (solo file PDF)</p>
-          </div>
+          <>
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-2">
+              <Upload 
+                className={`h-8 w-8 ${isDragging ? "text-primary" : "text-muted-foreground"}`} 
+              />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base font-medium">
+                {isDragging ? "Rilascia qui il file" : "Trascina qui il tuo PDF"}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                oppure clicca per selezionare
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Solo file PDF supportati
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* Animated ring for while dragging */}
+        {isDragging && (
+          <div className="absolute inset-0 border-4 border-primary/30 rounded-lg animate-pulse pointer-events-none"></div>
         )}
       </div>
     </div>

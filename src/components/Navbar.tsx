@@ -3,139 +3,173 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Upload, MessageSquare, Home, FileText, LogIn } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function Navbar() {
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const handleUploadClick = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push('/upload');
-    setMobileMenuOpen(false);
   };
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Per ora, mostra solo un alert
+    alert("Funzionalità di login non ancora implementata");
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-black">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-gray-50/80 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="flex justify-between items-center h-16 md:h-24">
-          {/* Logo Levels OG a sinistra - visibile solo su desktop */}
-          <div className="hidden md:block">
+        <div className="flex justify-between items-center h-16 md:h-20">
+          {/* Logo Levels OG a sinistra */}
+          <div className="flex items-center">
             <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer">
               <Image
-                src="/images/levels_og_logo.png"
+                src="/images/logo_levels_nero.png"
                 alt="Levels OG Logo"
-                width={120}
-                height={120}
+                width={100}
+                height={100}
                 className="object-contain"
               />
             </a>
           </div>
           
-          {/* Logo Piemontecnica al centro */}
-          <div className="flex-1 flex justify-center md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
-            <Link href="/">
-              <Image
-                src="/images/logo-piemontecnica.png"
-                alt="Piemontecnica Logo"
-                width={80}
-                height={80}
-                className="object-contain max-h-12 md:max-h-16"
-              />
-            </Link>
-          </div>
-          
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <a 
-              href="#" 
-              onClick={handleUploadClick}
-              className="relative overflow-hidden group text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-blue-600/10 border border-transparent hover:border-blue-500"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+          <div className="flex items-center space-x-3">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-3">
+              <Button 
+                asChild
+                variant="ghost"
+                className="flex items-center gap-2 hover:bg-gray-200/70"
+              >
+                <Link href="/">
+                  <Home className="w-4 h-4" />
+                  Home
+                </Link>
+              </Button>
+              <Button 
+                asChild
+                variant="ghost"
+                className="flex items-center gap-2 hover:bg-gray-200/70"
+              >
+                <Link href="/disciplinari">
+                  <FileText className="w-4 h-4" />
+                  I tuoi disciplinari
+                </Link>
+              </Button>
+              <Button 
+                onClick={handleUploadClick}
+                variant="ghost"
+                className="flex items-center gap-2 hover:bg-gray-200/70"
+              >
+                <Upload className="w-4 h-4" />
                 Upload
-              </span>
-            </a>
-            <Link 
-              href="/lucy" 
-              className="relative overflow-hidden group text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out hover:bg-blue-600/10 border border-transparent hover:border-blue-500 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              Lucy
-            </Link>
+              </Button>
+              <Button 
+                asChild
+                variant="ghost"
+                className="flex items-center gap-2 hover:bg-gray-200/70"
+              >
+                <Link href="/lucy">
+                  <MessageSquare className="w-4 h-4" />
+                  Lucy
+                </Link>
+              </Button>
+            </div>
 
-          </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button 
-              onClick={toggleMobileMenu}
-              className="text-white p-2"
-              aria-label="Toggle mobile menu"
+            {/* Login Button - sempre visibile */}
+            <Button 
+              onClick={handleLoginClick}
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Accedi</span>
+            </Button>
+            
+            {/* Mobile menu */}
+            <Sheet>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon" className="hover:bg-gray-200/70">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[240px] sm:w-[280px] bg-gray-50">
+                <div className="flex flex-col gap-4 py-4">
+                  <Button 
+                    asChild
+                    variant="ghost"
+                    className="justify-start flex items-center gap-2 hover:bg-gray-200/70"
+                  >
+                    <Link href="/">
+                      <Home className="w-4 h-4" />
+                      Home
+                    </Link>
+                  </Button>
+                  <Button 
+                    asChild
+                    variant="ghost"
+                    className="justify-start flex items-center gap-2 hover:bg-gray-200/70"
+                  >
+                    <Link href="/disciplinari">
+                      <FileText className="w-4 h-4" />
+                      I tuoi disciplinari
+                    </Link>
+                  </Button>
+                  <Button 
+                    onClick={handleUploadClick}
+                    variant="ghost"
+                    className="justify-start flex items-center gap-2 hover:bg-gray-200/70"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload
+                  </Button>
+                  <Button 
+                    asChild
+                    variant="ghost"
+                    className="justify-start flex items-center gap-2 hover:bg-gray-200/70"
+                  >
+                    <Link href="/lucy">
+                      <MessageSquare className="w-4 h-4" />
+                      Lucy
+                    </Link>
+                  </Button>
+                  
+                  <Separator className="my-4" />
+                  
+                  {/* Login Button nel menu mobile */}
+                  <Button 
+                    onClick={handleLoginClick}
+                    className="justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Accedi
+                  </Button>
+                  
+                  {/* Small Levels logo in mobile menu */}
+                  <div className="flex items-center gap-2 pl-3 mt-4">
+                    <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                      <Image
+                        src="/images/logo_levels_nero.png"
+                        alt="Levels OG Logo"
+                        width={60}
+                        height={60}
+                        className="object-contain"
+                      />
+                      <span className="text-sm text-muted-foreground">Powered by Levels</span>
+                    </a>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu, show/hide based on menu state */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black border-t border-gray-800">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <a 
-              href="#" 
-              onClick={handleUploadClick}
-              className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Upload
-            </a>
-            <Link 
-              href="/lucy" 
-              className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-800 flex items-center gap-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              Lucy
-            </Link>
-          </div>
-          
-          {/* Small Levels logo in mobile menu */}
-          <div className="px-4 py-3 border-t border-gray-800 flex justify-start">
-            <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer" className="flex items-center">
-              <Image
-                src="/images/levels_og_logo.png"
-                alt="Levels OG Logo"
-                width={80}
-                height={80}
-                className="object-contain"
-              />
-              <span className="ml-2 text-sm text-gray-400">Powered by Levels</span>
-            </a>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

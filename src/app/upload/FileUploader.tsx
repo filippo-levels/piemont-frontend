@@ -1,9 +1,26 @@
 import React, { useState, Dispatch, SetStateAction, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
 import axios from "axios";
 import DragDropArea from "./components/DragDropArea";
-import ActionButtons from "./components/ActionButtons";
 import LogDisplay from "./components/LogDisplay";
 import JsonDebugViewer, { clearAllJsonDebugData, getStoredJsonData } from "./components/JsonDebugViewer";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { FileSpreadsheet, FileText, Timer, BarChart2, X, Check, Loader2, Upload } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+
+// Add this to the top of your file
+const cardVariants = {
+  idle: { scale: 1 },
+  hover: { scale: 1.02, transition: { duration: 0.2 } }
+};
+
+const iconVariants = {
+  idle: { rotate: 0 },
+  hover: { rotate: 5, transition: { duration: 0.2, repeat: Infinity, repeatType: "reverse" } }
+};
 
 interface FileUploaderProps {
   setLogs: Dispatch<SetStateAction<string[]>>;
@@ -27,6 +44,10 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
     const [fullAnalyzeLoading, setFullAnalyzeLoading] = useState(false);
     const [executiveSummaryLoading, setExecutiveSummaryLoading] = useState(false);
     
+    // Success states
+    const [fullAnalyzeSuccess, setFullAnalyzeSuccess] = useState(false);
+    const [executiveSummarySuccess, setExecutiveSummarySuccess] = useState(false);
+    
     // Debug JSON responses
     const [criteriJsonResponse, setCriteriJsonResponse] = useState<any>(null);
     const [executiveSummaryJsonResponse, setExecutiveSummaryJsonResponse] = useState<any>(null);
@@ -38,10 +59,12 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
       
       if (savedCriteriJson) {
         setCriteriJsonResponse(savedCriteriJson);
+        setFullAnalyzeSuccess(true);
       }
       
       if (savedExecutiveJson) {
         setExecutiveSummaryJsonResponse(savedExecutiveJson);
+        setExecutiveSummarySuccess(true);
       }
     }, []);
 
@@ -50,6 +73,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
       const elapsed = (currentTime - startTimeRef.current) / 1000;
       setElapsedTime(elapsed);
       setCurrentElapsedTime(elapsed);
+      
     };
 
     const handleFileSelect = (selectedFile: File) => {
@@ -61,6 +85,8 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
       setElapsedTime(0);
       setCurrentElapsedTime(0);
       setShowElapsedTime(false);
+      setFullAnalyzeSuccess(false);
+      setExecutiveSummarySuccess(false);
     };
 
     const handleAnalyzeCriteri = async () => {
@@ -71,6 +97,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         return;
       }
       setFullAnalyzeLoading(true);
+      setFullAnalyzeSuccess(false);
       setElapsedTime(0);
       setCurrentElapsedTime(0);
       setShowElapsedTime(true);
@@ -109,6 +136,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           const completionMessage = `✅ Estrazione criteri completata con successo in ${timeElapsed.toFixed(2)} secondi`;
           setCurrentLog(completionMessage);
           setLogs((prev: string[]) => [...prev, completionMessage]);
+          setFullAnalyzeSuccess(true);
         } else if (responseData && responseData.data && responseData.data.criteri) {
           // Alternative structure if the API returns data wrapped in a 'data' property
           setJsonResult({
@@ -120,6 +148,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           const completionMessage = `✅ Estrazione criteri completata con successo in ${timeElapsed.toFixed(2)} secondi.`;
           setCurrentLog(completionMessage);
           setLogs((prev: string[]) => [...prev, completionMessage]);
+          setFullAnalyzeSuccess(true);
         } else {
           // Log the raw response structure to help debug
           console.log("API Response structure:", responseData);
@@ -148,6 +177,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         return;
       }
       setExecutiveSummaryLoading(true);
+      setExecutiveSummarySuccess(false);
       setElapsedTime(0);
       setCurrentElapsedTime(0);
       setShowElapsedTime(true);
@@ -181,6 +211,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           const completionMessage = `✅ Executive summary generato con successo in ${timeElapsed.toFixed(2)} secondi.`;
           setCurrentLog(completionMessage);
           setLogs((prev: string[]) => [...prev, completionMessage]);
+          setExecutiveSummarySuccess(true);
         } else if (responseData && responseData.data) {
           // Alternative handling if the API returns data wrapped in a 'data' property
           setExecutiveSummary(responseData.data);
@@ -189,6 +220,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           const completionMessage = `✅ Executive summary generato con successo in ${timeElapsed.toFixed(2)} secondi.`;
           setCurrentLog(completionMessage);
           setLogs((prev: string[]) => [...prev, completionMessage]);
+          setExecutiveSummarySuccess(true);
         } else {
           // Log the raw response structure to help debug
           console.log("API Response structure:", responseData);
@@ -223,6 +255,8 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
       setCriteriJsonResponse(null);
       setExecutiveSummaryJsonResponse(null);
       clearAllJsonDebugData();
+      setFullAnalyzeSuccess(false);
+      setExecutiveSummarySuccess(false);
       
       // Refresh the page
       if (onRemove) {
@@ -298,59 +332,235 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
 
     return (
       <div className="w-full mx-auto">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {/* File upload area */}
-          <DragDropArea 
-            onFileSelect={handleFileSelect} 
-            file={file} 
-          />
-          
-          {/* Checkbox for "only criteria" option */}
-          <div className="flex items-center">
-            <input
-              id="only-criteria-checkbox"
-              type="checkbox"
-              checked={onlyCriteria}
-              onChange={(e) => setOnlyCriteria(e.target.checked)}
-              className="w-4 h-4 text-[#3dcab1] bg-gray-100 border-gray-300 rounded focus:ring-[#3dcab1] focus:ring-2"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <DragDropArea 
+              onFileSelect={handleFileSelect} 
+              file={file} 
             />
-            <label htmlFor="only-criteria-checkbox" className="ml-2 text-sm font-medium text-gray-700">
-              File con solo criteri
-            </label>
-          </div>
+          </motion.div>
           
-          {/* Action buttons */}
-          <ActionButtons 
-            onAnalyzeCriteri={handleAnalyzeCriteri}
-            onExecutiveSummary={handleExecutiveSummary}
-            fullAnalyzeLoading={fullAnalyzeLoading}
-            executiveSummaryLoading={executiveSummaryLoading}
-            isDisabled={!file}
-          />
+          {/* Action buttons and options */}
+          <div className="flex flex-col gap-6">
+            {/* Options */}
+            <motion.div 
+              className="flex items-center justify-between px-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="only-criteria-checkbox"
+                  checked={onlyCriteria}
+                  onCheckedChange={setOnlyCriteria}
+                  className="data-[state=checked]:bg-primary"
+                />
+                <Label 
+                  htmlFor="only-criteria-checkbox" 
+                  className="text-sm cursor-pointer select-none"
+                >
+                  File con solo criteri
+                </Label>
+              </div>
+              
+              {file && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Button
+                    onClick={handleRemove}
+                    variant="ghost"
+                    className="text-sm flex items-center gap-1 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                    Rimuovi file
+                  </Button>
+                </motion.div>
+              )}
+            </motion.div>
+            
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              {/* Estrazione Criteri Button */}
+              <motion.div
+                variants={cardVariants}
+                initial="idle"
+                whileHover={!fullAnalyzeLoading && !executiveSummaryLoading ? "hover" : "idle"}
+              >
+                <Card 
+                  className={`relative overflow-hidden border cursor-pointer transition-all duration-300 h-full
+                    ${fullAnalyzeSuccess ? 'border-green-500/50 bg-green-50/30' : 
+                      fullAnalyzeLoading ? 'border-primary/50 bg-primary/5' : 
+                      'border-primary/20 hover:border-primary/50 hover:shadow-sm'}`}
+                  onClick={!fullAnalyzeLoading && !executiveSummaryLoading ? handleAnalyzeCriteri : undefined}
+                >
+                  <div className="p-5 flex flex-col items-center justify-center h-full">
+                    <motion.div 
+                      variants={iconVariants}
+                      initial="idle"
+                      whileHover={!fullAnalyzeLoading ? "hover" : "idle"}
+                      className={`rounded-full p-3 mb-3 ${
+                        fullAnalyzeSuccess ? 'bg-green-100' : 
+                        fullAnalyzeLoading ? 'bg-primary/20' : 
+                        'bg-primary/10'
+                      }`}
+                    >
+                      {fullAnalyzeSuccess ? (
+                        <Check className="h-6 w-6 text-green-500" />
+                      ) : fullAnalyzeLoading ? (
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      ) : (
+                        <FileSpreadsheet className="h-6 w-6 text-primary" />
+                      )}
+                    </motion.div>
+                    <h3 className={`font-medium text-center ${fullAnalyzeSuccess ? 'text-green-600' : ''}`}>
+                      Estrazione Criteri
+                    </h3>
+                    <p className="text-sm text-muted-foreground text-center mt-1">
+                      Analizza il documento ed estrai tutti i criteri tecnici presenti
+                    </p>
+                    {fullAnalyzeLoading && (
+                      <div className="mt-3 flex items-center text-xs text-primary">
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        In elaborazione...
+                      </div>
+                    )}
+                    {fullAnalyzeSuccess && !fullAnalyzeLoading && (
+                      <div className="mt-3 flex items-center text-xs text-green-500">
+                        <Check className="h-3 w-3 mr-1" />
+                        Analisi completata
+                      </div>
+                    )}
+                  </div>
+                  {fullAnalyzeLoading && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary/20">
+                      <motion.div 
+                        className="h-full bg-primary"
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${Math.min(currentElapsedTime * 5, 100)}%` }}
+                        transition={{ ease: "easeInOut" }}
+                      />
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+              
+              {/* Executive Summary Button */}
+              <motion.div
+                variants={cardVariants}
+                initial="idle"
+                whileHover={!executiveSummaryLoading && !fullAnalyzeLoading ? "hover" : "idle"}
+              >
+                <Card 
+                  className={`relative overflow-hidden border cursor-pointer transition-all duration-300 h-full
+                    ${executiveSummarySuccess ? 'border-green-500/50 bg-green-50/30' : 
+                      executiveSummaryLoading ? 'border-primary/50 bg-primary/5' : 
+                      'border-primary/20 hover:border-primary/50 hover:shadow-sm'}`}
+                  onClick={!executiveSummaryLoading && !fullAnalyzeLoading ? handleExecutiveSummary : undefined}
+                >
+                  <div className="p-5 flex flex-col items-center justify-center h-full">
+                    <motion.div 
+                      variants={iconVariants}
+                      initial="idle"
+                      whileHover={!executiveSummaryLoading ? "hover" : "idle"}
+                      className={`rounded-full p-3 mb-3 ${
+                        executiveSummarySuccess ? 'bg-green-100' : 
+                        executiveSummaryLoading ? 'bg-primary/20' : 
+                        'bg-primary/10'
+                      }`}
+                    >
+                      {executiveSummarySuccess ? (
+                        <Check className="h-6 w-6 text-green-500" />
+                      ) : executiveSummaryLoading ? (
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      ) : (
+                        <BarChart2 className="h-6 w-6 text-primary" />
+                      )}
+                    </motion.div>
+                    <h3 className={`font-medium text-center ${executiveSummarySuccess ? 'text-green-600' : ''}`}>
+                      Executive Summary
+                    </h3>
+                    <p className="text-sm text-muted-foreground text-center mt-1">
+                      Genera un riepilogo dettagliato dell'intero documento
+                    </p>
+                    {executiveSummaryLoading && (
+                      <div className="mt-3 flex items-center text-xs text-primary">
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        In elaborazione...
+                      </div>
+                    )}
+                    {executiveSummarySuccess && !executiveSummaryLoading && (
+                      <div className="mt-3 flex items-center text-xs text-green-500">
+                        <Check className="h-3 w-3 mr-1" />
+                        Analisi completata
+                      </div>
+                    )}
+                  </div>
+                  {executiveSummaryLoading && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-primary/20">
+                      <motion.div 
+                        className="h-full bg-primary"
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${Math.min(currentElapsedTime * 5, 100)}%` }}
+                        transition={{ ease: "easeInOut" }}
+                      />
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+            </motion.div>
+          </div>
           
           {/* Log display */}
-          <LogDisplay 
-            currentLog={currentLog}
-            showElapsedTime={showElapsedTime}
-            currentElapsedTime={currentElapsedTime}
-          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <LogDisplay 
+              currentLog={currentLog}
+              showElapsedTime={showElapsedTime}
+              currentElapsedTime={currentElapsedTime}
+            />
+          </motion.div>
           
           {/* Debug JSON viewers */}
-          <div className="flex flex-col gap-2">
-            {criteriJsonResponse && (
-              <JsonDebugViewer 
-                type="criteri" 
-                jsonData={criteriJsonResponse} 
-              />
-            )}
-            
-            {executiveSummaryJsonResponse && (
-              <JsonDebugViewer 
-                type="executive" 
-                jsonData={executiveSummaryJsonResponse} 
-              />
-            )}
-          </div>
+          {(criteriJsonResponse || executiveSummaryJsonResponse) && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.3 }}
+            >
+              <Separator className="my-2" />
+              <div className="flex flex-col gap-2">
+                {criteriJsonResponse && (
+                  <JsonDebugViewer 
+                    type="criteri" 
+                    jsonData={criteriJsonResponse} 
+                  />
+                )}
+                
+                {executiveSummaryJsonResponse && (
+                  <JsonDebugViewer 
+                    type="executive" 
+                    jsonData={executiveSummaryJsonResponse} 
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     );

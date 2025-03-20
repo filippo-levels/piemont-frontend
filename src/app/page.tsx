@@ -1,148 +1,79 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import DocumentGrid from "@/components/DocumentGrid";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Upload, FileText, ChevronDown } from "lucide-react";
+import FeatureSection from "@/components/FeatureSection";
+import { motion } from "framer-motion";
 
 export default function Home() {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [stats, setStats] = useState({
-    totalDocuments: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const documentGridRef = useRef<{ fetchDocuments: () => Promise<void> } | null>(null);
   const router = useRouter();
-
-  // Funzione per caricare le statistiche
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      // Puoi sostituire questa chiamata con l'endpoint effettivo per le statistiche
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/list_files_disciplinari`);
-      
-      if (response.data && response.data.files) {
-        // Calcola statistiche di base dai file disponibili
-        const totalDocs = response.data.files.length;
-        
-        setStats({
-          totalDocuments: totalDocs
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Funzione per aggiornare sia le statistiche che la lista dei documenti
-  const handleRefresh = async () => {
-    await fetchStats();
-    if (documentGridRef.current) {
-      await documentGridRef.current.fetchDocuments();
-    }
-  };
-
-  // Funzione per gestire il click su un documento
-  const handleDocumentClick = (fileName: string) => {
-    // Naviga alla pagina del documento con il nome del file come parametro
-    router.push(`/document/${encodeURIComponent(fileName)}`);
-  };
-
-  // Funzione per gestire il click sul pulsante "NUOVO"
-  const handleNewDocument = () => {
-    router.push('/upload');
-  };
-
-  // Funzione per cambiare la modalità di visualizzazione
-  const toggleViewMode = () => {
-    setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
-  };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+    <div className="min-h-screen bg-background">
+      {/* Hero Section with Animation */}
+      <motion.div 
+        className="h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-50 to-background px-4 sm:px-6 lg:px-8 relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="text-center max-w-3xl"
+        >
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
+            Piattaforma di Gestione <span className="text-primary">Disciplinari</span>
+          </h1>
+          <p className="text-xl text-muted-foreground mb-10">
+            Analizza, gestisci e estrai automaticamente informazioni dai tuoi disciplinari di gara in modo semplice ed efficiente.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button onClick={() => router.push('/upload')} size="lg" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Carica un documento
+            </Button>
+            <Button onClick={() => router.push('/disciplinari')} variant="outline" size="lg" className="gap-2">
+              <FileText className="h-4 w-4" />
+              I tuoi disciplinari
+            </Button>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ delay: 1.5, duration: 1 }}
+          className="absolute bottom-10"
+        >
+          <ChevronDown 
+            className="h-8 w-8 animate-bounce cursor-pointer" 
+            onClick={() => {
+              const featuresSection = document.querySelector('.py-10');
+              if (featuresSection) {
+                featuresSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          />
+        </motion.div>
+      </motion.div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         
         {/* Header Section */}
-        <div className="text-center py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center py-10">
+          <h1 className="text-3xl font-medium mb-4">
             Piattaforma di Gestione Disciplinari
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Analizza e gestisci i tuoi disciplinari di gara.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto p-6 space-y-6">
-          {/* Document Grid con pulsante NUOVO */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-semibold text-gray-800">I tuoi disciplinari</h2>
-                <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg font-medium">
-                  {loading ? '...' : stats.totalDocuments} totali
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleRefresh}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2"
-                  title="Aggiorna la lista dei disciplinari"
-                  disabled={loading}
-                >
-                  <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  <span className="hidden sm:inline">{loading ? 'Caricamento...' : 'Aggiorna'}</span>
-                </button>
-                <button
-                  onClick={toggleViewMode}
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2"
-                  title={viewMode === 'grid' ? 'Passa alla visualizzazione a elenco' : 'Passa alla visualizzazione a griglia'}
-                >
-                  {viewMode === 'grid' ? (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                      </svg>
-                      <span className="hidden sm:inline">Elenco</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                      </svg>
-                      <span className="hidden sm:inline">Griglia</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleNewDocument}
-                  className="px-5 py-2.5 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors flex items-center gap-2 font-medium"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  UPLOAD
-                </button>
-              </div>
-            </div>
-            <DocumentGrid 
-              ref={documentGridRef}
-              onError={(error) => setLogs(prev => [...prev, error])}
-              onDocumentClick={handleDocumentClick}
-              showNewButton={false}
-              hideTitle={true}
-              smallerIcons={true}
-              viewMode={viewMode}
-            />
-          </div>
-        </div>
+        {/* Feature Section */}
+        <FeatureSection />
       </div>
     </div>
   );
