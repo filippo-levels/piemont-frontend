@@ -5,6 +5,7 @@ import FileUploader from "@/app/upload/FileUploader";
 import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
 import { generatePDF } from "../../utils/pdfGenerator";
+import { clearAllJsonDebugData } from "./components/JsonDebugViewer";
 
 const STORAGE_KEY = 'uploadAnalysisResult';
 const EXECUTIVE_SUMMARY_KEY = 'executiveSummaryResult';
@@ -69,9 +70,10 @@ export default function UploadPage() {
   };
 
   const handleRemoveAnalysis = () => {
-    // Rimuovi entrambi i dati dal localStorage
+    // Rimuovi tutti i dati dal localStorage
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(EXECUTIVE_SUMMARY_KEY);
+    clearAllJsonDebugData();
     
     // Resetta lo stato
     setJsonResult(null);
@@ -79,6 +81,9 @@ export default function UploadPage() {
     setLogs([]);
     setElapsedTime(0);
     setActiveView(null);
+    
+    // Ricarica la pagina per assicurarsi che tutto sia correttamente resettato
+    window.location.reload();
   };
 
   const handleExportToPDF = () => {
