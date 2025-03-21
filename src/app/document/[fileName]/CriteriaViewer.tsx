@@ -19,6 +19,7 @@ interface CriteriaViewerProps {
 
 export default function CriteriaViewer({ data }: CriteriaViewerProps) {
   const [isAllExpanded, setIsAllExpanded] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   
   if (!data) {
     return (
@@ -51,6 +52,18 @@ export default function CriteriaViewer({ data }: CriteriaViewerProps) {
     );
   }
   
+  const toggleDescription = (id: string) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -78,6 +91,8 @@ export default function CriteriaViewer({ data }: CriteriaViewerProps) {
             criterio={criterio} 
             level={0}
             isAllExpanded={isAllExpanded}
+            expandedDescriptions={expandedDescriptions}
+            toggleDescription={toggleDescription}
           />
         ))}
       </div>

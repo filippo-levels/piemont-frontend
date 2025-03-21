@@ -23,12 +23,20 @@ const JsonDebugViewer: React.FC<JsonDebugViewerProps> = ({ type, jsonData }) => 
   useEffect(() => {
     if (jsonData) {
       try {
+        console.log(`Saving ${type} JSON to localStorage with key: ${storageKey}`);
         localStorage.setItem(storageKey, JSON.stringify(jsonData));
       } catch (error) {
         console.error(`Error saving ${type} JSON to localStorage:`, error);
       }
     }
   }, [jsonData, storageKey, type]);
+  
+  // Log when component unmounts
+  useEffect(() => {
+    return () => {
+      console.log(`JsonDebugViewer (${type}) unmounting`);
+    };
+  }, [type]);
   
   // Text and styling varies by type
   const typeLabel = type === 'criteri' ? 'Criteri' : 'Executive Summary';
@@ -82,10 +90,30 @@ const JsonDebugViewer: React.FC<JsonDebugViewerProps> = ({ type, jsonData }) => 
   );
 };
 
-// Function to clear all debug JSON from localStorage
+// Function to clear all debug JSON from localStorage with a more robust approach
 export const clearAllJsonDebugData = () => {
-  localStorage.removeItem(CRITERI_JSON_KEY);
-  localStorage.removeItem(EXECUTIVE_SUMMARY_JSON_KEY);
+  try {
+    console.log('Clearing JSON debug data from localStorage');
+    
+    // Remove the items one by one
+    localStorage.removeItem(CRITERI_JSON_KEY);
+    localStorage.removeItem(EXECUTIVE_SUMMARY_JSON_KEY);
+    
+    // Force localStorage to commit changes by setting and removing a dummy key
+    localStorage.setItem('__debug_clear_sync', Date.now().toString());
+    localStorage.removeItem('__debug_clear_sync');
+    
+    // Verify everything is cleared
+    const criteriCheck = localStorage.getItem(CRITERI_JSON_KEY);
+    const executiveCheck = localStorage.getItem(EXECUTIVE_SUMMARY_JSON_KEY);
+    
+    console.log('JSON debug data cleared, verification:', {
+      criteriRemoved: criteriCheck === null,
+      executiveRemoved: executiveCheck === null
+    });
+  } catch (error) {
+    console.error('Error clearing JSON debug data:', error);
+  }
 };
 
 // Function to get stored JSON data
@@ -98,6 +126,23 @@ export const getStoredJsonData = (type: 'criteri' | 'executive') => {
     console.error(`Error retrieving ${type} JSON from localStorage:`, error);
     return null;
   }
+};
+
+// Function to check if any JSON debug data exists in localStorage
+export const checkJsonDebugDataExists = () => {
+  const criteriData = localStorage.getItem(CRITERI_JSON_KEY);
+  const executiveData = localStorage.getItem(EXECUTIVE_SUMMARY_JSON_KEY);
+  
+  console.log('JSON Debug Data Check:', {
+    criteriExists: !!criteriData,
+    executiveExists: !!executiveData
+  });
+  
+  return {
+    criteriExists: !!criteriData,
+    executiveExists: !!executiveData,
+    anyExists: !!criteriData || !!executiveData
+  };
 };
 
 export default JsonDebugViewer; 

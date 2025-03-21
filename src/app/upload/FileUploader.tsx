@@ -2,7 +2,7 @@ import React, { useState, Dispatch, SetStateAction, useRef, forwardRef, useImper
 import axios from "axios";
 import DragDropArea from "./components/DragDropArea";
 import LogDisplay from "./components/LogDisplay";
-import JsonDebugViewer, { clearAllJsonDebugData, getStoredJsonData } from "./components/JsonDebugViewer";
+import JsonDebugViewer, { clearAllJsonDebugData, getStoredJsonData, checkJsonDebugDataExists } from "./components/JsonDebugViewer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -19,7 +19,7 @@ const cardVariants = {
 
 const iconVariants = {
   idle: { rotate: 0 },
-  hover: { rotate: 5, transition: { duration: 0.2, repeat: Infinity, repeatType: "reverse" } }
+  hover: { rotate: 5, transition: { duration: 0.2, repeat: Infinity, repeatType: "reverse" as const } }
 };
 
 interface FileUploaderProps {
@@ -54,15 +54,20 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
 
     // Load saved JSON responses from localStorage on component mount
     useEffect(() => {
+      console.log('FileUploader mounted, checking for saved JSON data:');
+      checkJsonDebugDataExists();
+      
       const savedCriteriJson = getStoredJsonData('criteri');
       const savedExecutiveJson = getStoredJsonData('executive');
       
       if (savedCriteriJson) {
+        console.log('Restoring criteri JSON from localStorage');
         setCriteriJsonResponse(savedCriteriJson);
         setFullAnalyzeSuccess(true);
       }
       
       if (savedExecutiveJson) {
+        console.log('Restoring executive summary JSON from localStorage');
         setExecutiveSummaryJsonResponse(savedExecutiveJson);
         setExecutiveSummarySuccess(true);
       }
@@ -225,23 +230,49 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
       const logMessage = "🗑️ File rimosso";
       setCurrentLog(logMessage);
       setLogs((prev: string[]) => [...prev, logMessage]);
+      
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
       
-      // Clear debug JSON
+      // Reset UI states
+      setJsonResult(null);
+      setElapsedTime(0);
+      setCurrentElapsedTime(0);
+      setShowElapsedTime(false);
+      
+      // Check if JSON debug data exists before clearing
+      console.log('Before clearing localStorage:');
+      checkJsonDebugDataExists();
+      
+      // Clear debug JSON data - use direct localStorage removal for redundancy
+      try {
+        // Manual removal of localStorage items
+        window.localStorage.removeItem('criteriRawJsonResponse');
+        window.localStorage.removeItem('executiveSummaryRawJsonResponse');
+        
+        // Also call the utility function
+        clearAllJsonDebugData();
+        
+        console.log('Debug JSON data cleared manually and via utility');
+        
+        // Verify data was cleared
+        console.log('After clearing localStorage:');
+        checkJsonDebugDataExists();
+      } catch (error) {
+        console.error('Error clearing localStorage:', error);
+      }
+      
+      // Reset state to clear UI
       setCriteriJsonResponse(null);
       setExecutiveSummaryJsonResponse(null);
-      clearAllJsonDebugData();
       setFullAnalyzeSuccess(false);
       setExecutiveSummarySuccess(false);
       
-      // Refresh the page
+      // Run onRemove callback if provided
       if (onRemove) {
         onRemove();
-        // Reload the page after removing analysis
-        window.location.reload();
       }
     };
 
@@ -382,7 +413,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                   className={`relative overflow-hidden border cursor-pointer transition-all duration-300 h-full
                     ${fullAnalyzeSuccess ? 'border-green-500/50 bg-green-50/30' : 
                       fullAnalyzeLoading ? 'border-primary/50 bg-primary/5' : 
-                      'border-primary/20 hover:border-primary/50 hover:shadow-sm'}`}
+                      'border-primary/20 hover:border-primary/50 hover:shadow-sm bg-blue-50 dark:bg-blue-950/30'}`}
                   onClick={!fullAnalyzeLoading && !executiveSummaryLoading ? handleAnalyzeCriteri : undefined}
                 >
                   <div className="p-5 flex flex-col items-center justify-center h-full">
@@ -393,7 +424,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                       className={`rounded-full p-3 mb-3 ${
                         fullAnalyzeSuccess ? 'bg-green-100' : 
                         fullAnalyzeLoading ? 'bg-primary/20' : 
-                        'bg-primary/10'
+                        'bg-blue-200 dark:bg-blue-800/70'
                       }`}
                     >
                       {fullAnalyzeSuccess ? (
@@ -446,7 +477,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                   className={`relative overflow-hidden border cursor-pointer transition-all duration-300 h-full
                     ${executiveSummarySuccess ? 'border-green-500/50 bg-green-50/30' : 
                       executiveSummaryLoading ? 'border-primary/50 bg-primary/5' : 
-                      'border-primary/20 hover:border-primary/50 hover:shadow-sm'}`}
+                      'border-primary/20 hover:border-primary/50 hover:shadow-sm bg-purple-50 dark:bg-purple-950/30'}`}
                   onClick={!executiveSummaryLoading && !fullAnalyzeLoading ? handleExecutiveSummary : undefined}
                 >
                   <div className="p-5 flex flex-col items-center justify-center h-full">
@@ -457,7 +488,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
                       className={`rounded-full p-3 mb-3 ${
                         executiveSummarySuccess ? 'bg-green-100' : 
                         executiveSummaryLoading ? 'bg-primary/20' : 
-                        'bg-primary/10'
+                        'bg-purple-200 dark:bg-purple-800/70'
                       }`}
                     >
                       {executiveSummarySuccess ? (
