@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import ChatHistory from "@/app/lucy/ChatHistory";
+import LucyChat from "@/app/lucy/LucyChat";
 
 export default function LucyPage() {
   const [message, setMessage] = useState("");
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -30,6 +32,8 @@ export default function LucyPage() {
           <ChatHistory />
         </div>
       </div>
+      
+      <LucyChat />
     </div>
   );
 } 
