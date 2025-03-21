@@ -187,11 +187,7 @@ export default function ChatHistory() {
     }, 1500);
   };
   
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeSession?.messages]);
-  
+
   // Format time as HH:MM
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

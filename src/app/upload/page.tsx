@@ -210,7 +210,7 @@ export default function UploadPage() {
                             initial="hidden"
                             animate="visible"
                           >
-                            <CriteriSimiliViewer data={jsonResult} elapsedTime={elapsedTime} />
+                            <CriteriSimiliViewer criteri={jsonResult.criteri} />
                           </motion.div>
                         )}
                       </TabsContent>

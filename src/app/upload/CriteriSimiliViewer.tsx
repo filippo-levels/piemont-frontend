@@ -6,29 +6,33 @@ import { Criterio } from "../../types/criterio";
 
 interface Props {
   criteri: Criterio[];
-  data: any;
 }
 
 // Create a context for collapse state management
-const CollapseContext = createContext<{
+export const CollapseContext = createContext<{
   collapsedItems: Set<string>;
   toggleCollapse: (id: string) => void;
   collapseAll: () => void;
   expandAll: () => void;
   isCollapsed: (id: string) => boolean;
+  expandedDescriptions: Set<string>;
+  toggleDescription: (id: string) => void;
 }>({
   collapsedItems: new Set<string>(),
   toggleCollapse: () => {},
   collapseAll: () => {},
   expandAll: () => {},
-  isCollapsed: () => false
+  isCollapsed: () => false,
+  expandedDescriptions: new Set<string>(),
+  toggleDescription: () => {}
 });
 
 // Custom hook for using the collapse context
-const useCollapseState = () => useContext(CollapseContext);
+export const useCollapseState = () => useContext(CollapseContext);
 
-export default function CriteriSimiliViewer({ criteri, data }: Props) {
+export default function CriteriSimiliViewer({ criteri }: Props) {
   const [collapsedItems, setCollapsedItems] = useState(new Set<string>());
+  const [expandedDescriptions, setExpandedDescriptions] = useState(new Set<string>());
   const [forceUpdate, setForceUpdate] = useState(0); // Used to force re-renders
   
   if (!criteri?.length) return null;
@@ -89,13 +93,28 @@ export default function CriteriSimiliViewer({ criteri, data }: Props) {
     }
   };
 
+  // Toggle description expansion
+  const toggleDescription = (id: string) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   // Provider values for context
   const contextValue = {
     collapsedItems,
     toggleCollapse,
     collapseAll,
     expandAll,
-    isCollapsed
+    isCollapsed,
+    expandedDescriptions,
+    toggleDescription
   };
 
   return (
@@ -118,6 +137,18 @@ export default function CriteriSimiliViewer({ criteri, data }: Props) {
               </svg>
               {collapsedItems.size > 0 ? "Espandi tutti" : "Comprimi tutti"}
             </button>
+            
+            {/* Pulsante per modalità compatta */}
+            <button
+              onClick={() => setExpandedDescriptions(new Set())}
+              className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1"
+              title="Modalità compatta"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8" />
+              </svg>
+              Compatta
+            </button>
           </div>
         </div>
 
@@ -129,6 +160,8 @@ export default function CriteriSimiliViewer({ criteri, data }: Props) {
               criterio={criterio}
               collapsed={isCollapsed(criterio.id)}
               toggleCollapse={toggleCollapse}
+              expandedDescriptions={expandedDescriptions}
+              toggleDescription={toggleDescription}
             />
           ))}
         </div>

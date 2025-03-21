@@ -137,18 +137,6 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
           setCurrentLog(completionMessage);
           setLogs((prev: string[]) => [...prev, completionMessage]);
           setFullAnalyzeSuccess(true);
-        } else if (responseData && responseData.data && responseData.data.criteri) {
-          // Alternative structure if the API returns data wrapped in a 'data' property
-          setJsonResult({
-            file_name: file.name,
-            criteri: responseData.data.criteri
-          });
-          
-          const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
-          const completionMessage = `✅ Estrazione criteri completata con successo in ${timeElapsed.toFixed(2)} secondi.`;
-          setCurrentLog(completionMessage);
-          setLogs((prev: string[]) => [...prev, completionMessage]);
-          setFullAnalyzeSuccess(true);
         } else {
           // Log the raw response structure to help debug
           console.log("API Response structure:", responseData);
@@ -206,15 +194,6 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         if (responseData) {
           // Set the executive summary directly from the response
           setExecutiveSummary(responseData);
-          
-          const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
-          const completionMessage = `✅ Executive summary generato con successo in ${timeElapsed.toFixed(2)} secondi.`;
-          setCurrentLog(completionMessage);
-          setLogs((prev: string[]) => [...prev, completionMessage]);
-          setExecutiveSummarySuccess(true);
-        } else if (responseData && responseData.data) {
-          // Alternative handling if the API returns data wrapped in a 'data' property
-          setExecutiveSummary(responseData.data);
           
           const timeElapsed = (Date.now() - startTimeRef.current) / 1000;
           const completionMessage = `✅ Executive summary generato con successo in ${timeElapsed.toFixed(2)} secondi.`;

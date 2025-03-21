@@ -2,7 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Upload, MessageSquare, Home, FileText, LogIn } from "lucide-react";
@@ -28,7 +27,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo Levels OG a sinistra */}
           <div className="flex items-center">
-            <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer">
+            <Link href="/" className="flex items-center">
               <Image
                 src="/images/logo_levels_nero.png"
                 alt="Levels OG Logo"
@@ -36,7 +35,7 @@ export default function Navbar() {
                 height={100}
                 className="object-contain"
               />
-            </a>
+            </Link>
           </div>
           
           <div className="flex items-center space-x-3">
@@ -87,8 +86,8 @@ export default function Navbar() {
               onClick={handleLoginClick}
               className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <LogIn className="w-4 h-4" />
-              <span className="hidden sm:inline">Accedi</span>
+              <LogIn className="w-4 h-4 text-white" />
+              <span className="hidden sm:inline text-white">Accedi</span>
             </Button>
             
             {/* Mobile menu */}

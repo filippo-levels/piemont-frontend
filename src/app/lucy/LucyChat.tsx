@@ -73,10 +73,7 @@ export default function LucyChat() {
     }, 1500);
   };
   
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+
   
   // Format time as HH:MM
   const formatTime = (date: Date) => {

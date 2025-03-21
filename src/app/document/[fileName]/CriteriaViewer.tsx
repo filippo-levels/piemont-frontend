@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import CriterioCard from '../../../components/CriterioCard';
 import { Criterio } from '../../../types/criterio';
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CriteriaData {
   file_name: string;
@@ -20,9 +22,11 @@ export default function CriteriaViewer({ data }: CriteriaViewerProps) {
   
   if (!data) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        Nessun criterio disponibile
-      </div>
+      <Alert variant="destructive" className="bg-gray-50 border-gray-200">
+        <AlertDescription className="text-center py-4 text-gray-500">
+          Nessun criterio disponibile
+        </AlertDescription>
+      </Alert>
     );
   }
   
@@ -39,28 +43,32 @@ export default function CriteriaViewer({ data }: CriteriaViewerProps) {
   
   if (criteriToDisplay.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        Nessun criterio disponibile
-      </div>
+      <Alert variant="destructive" className="bg-gray-50 border-gray-200">
+        <AlertDescription className="text-center py-4 text-gray-500">
+          Nessun criterio disponibile
+        </AlertDescription>
+      </Alert>
     );
   }
   
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
+        <Button
           onClick={() => setIsAllExpanded(!isAllExpanded)}
-          className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+          variant="outline"
+          size="sm"
+          className="text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200"
         >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isAllExpanded ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
             ) : (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
             )}
           </svg>
-          <span>{isAllExpanded ? 'Comprimi tutti' : 'Espandi tutti'}</span>
-        </button>
+          {isAllExpanded ? 'Comprimi tutti' : 'Espandi tutti'}
+        </Button>
       </div>
       
       <div className="space-y-3">
