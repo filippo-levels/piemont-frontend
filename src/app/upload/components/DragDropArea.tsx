@@ -59,7 +59,7 @@ const DragDropArea: React.FC<DragDropAreaProps> = ({ onFileSelect, file }) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative group flex flex-col items-center justify-center p-6 rounded-lg
+      className={`relative group flex flex-col items-center justify-center p-4 sm:p-6 rounded-lg
         border-2 border-dashed transition-all duration-300 cursor-pointer
         ${isDragging 
           ? "border-[#3dcab1] bg-[#3dcab1]/10" 
@@ -77,9 +77,9 @@ const DragDropArea: React.FC<DragDropAreaProps> = ({ onFileSelect, file }) => {
         className="hidden"
       />
       
-      <div className="flex flex-row items-center gap-4 w-full justify-center">
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full justify-center text-center sm:text-left">
         <svg 
-          className={`w-12 h-12 ${isDragging ? "text-[#3dcab1]" : "text-gray-400"}`} 
+          className={`w-10 h-10 sm:w-12 sm:h-12 ${isDragging ? "text-[#3dcab1]" : "text-gray-400"}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24" 
@@ -95,15 +95,15 @@ const DragDropArea: React.FC<DragDropAreaProps> = ({ onFileSelect, file }) => {
         
         {file ? (
           <div className="flex flex-col">
-            <p className="text-lg font-medium text-[#3dcab1]">{file.name}</p>
-            <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            <p className="text-base sm:text-lg font-medium text-[#3dcab1] break-all sm:break-normal">{file.name}</p>
+            <p className="text-xs sm:text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
           </div>
         ) : (
           <div className="flex flex-col">
-            <p className="text-lg font-medium text-gray-700">
+            <p className="text-base sm:text-lg font-medium text-gray-700">
               {isDragging ? "Rilascia qui il file" : "Trascina qui il tuo PDF"}
             </p>
-            <p className="text-sm text-gray-500">oppure clicca per selezionare (solo file PDF)</p>
+            <p className="text-xs sm:text-sm text-gray-500">oppure clicca per selezionare (solo file PDF)</p>
           </div>
         )}
       </div>

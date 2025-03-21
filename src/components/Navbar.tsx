@@ -20,8 +20,8 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="flex justify-between items-center h-16 md:h-24">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
+        <div className="flex justify-between items-center h-14 sm:h-16 md:h-24">
           {/* Logo Levels OG a sinistra - visibile solo su desktop */}
           <div className="hidden md:block">
             <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer">
@@ -41,9 +41,9 @@ export default function Navbar() {
               <Image
                 src="/images/logo-piemontecnica.png"
                 alt="Piemontecnica Logo"
-                width={80}
-                height={80}
-                className="object-contain max-h-12 md:max-h-16"
+                width={70}
+                height={70}
+                className="object-contain max-h-10 sm:max-h-12 md:max-h-16"
               />
             </Link>
           </div>
@@ -78,15 +78,15 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button 
               onClick={toggleMobileMenu}
-              className="text-white p-2"
+              className="text-white p-1.5 focus:outline-none focus:ring-2 focus:ring-gray-500 rounded"
               aria-label="Toggle mobile menu"
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -127,11 +127,11 @@ export default function Navbar() {
               <Image
                 src="/images/levels_og_logo.png"
                 alt="Levels OG Logo"
-                width={80}
-                height={80}
+                width={60}
+                height={60}
                 className="object-contain"
               />
-              <span className="ml-2 text-sm text-gray-400">Powered by Levels</span>
+              <span className="ml-2 text-xs sm:text-sm text-gray-400">Powered by Levels</span>
             </a>
           </div>
         </div>

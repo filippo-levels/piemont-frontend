@@ -66,29 +66,29 @@ export default function Home() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24">
         
         {/* Header Section */}
-        <div className="text-center py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center py-8 sm:py-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 px-2">
             Piattaforma di Gestione Disciplinari
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
             Analizza e gestisci i tuoi disciplinari di gara.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="max-w-6xl mx-auto p-3 sm:p-6 space-y-6">
           {/* Document Grid con pulsante NUOVO */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl font-semibold text-gray-800">I tuoi disciplinari</h2>
                 <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg font-medium">
                   {loading ? '...' : stats.totalDocuments} totali
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleRefresh}
                   className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2"
@@ -128,7 +128,7 @@ export default function Home() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  UPLOAD
+                  <span>UPLOAD</span>
                 </button>
               </div>
             </div>

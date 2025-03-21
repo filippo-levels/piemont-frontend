@@ -16,12 +16,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   isDisabled
 }) => {
   return (
-    <div className="flex flex-row justify-center gap-4">
+    <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full">
       {/* Estrazione Criteri Button */}
       <button 
         onClick={onAnalyzeCriteri} 
         disabled={fullAnalyzeLoading || executiveSummaryLoading || isDisabled}
-        className="px-6 py-2 bg-[#3dcab1] text-[#fefefe] rounded-lg
+        className="w-full px-4 sm:px-6 py-2 bg-[#3dcab1] text-[#fefefe] rounded-lg
           disabled:opacity-50 hover:bg-[#3dcab1]/90 
           transition-all duration-200 font-medium shadow-sm
           hover:shadow-md disabled:hover:shadow-none
@@ -67,7 +67,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
               />
             </svg>
-            ESTRAZIONE CRITERI
+            <span className="text-sm sm:text-base">ESTRAZIONE CRITERI</span>
           </>
         )}
       </button>
@@ -76,7 +76,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <button 
         onClick={onExecutiveSummary} 
         disabled={executiveSummaryLoading || fullAnalyzeLoading || isDisabled}
-        className="px-6 py-2 bg-blue-600 text-white rounded-lg
+        className="w-full px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg
           disabled:opacity-50 hover:bg-blue-700 
           transition-all duration-200 font-medium shadow-sm
           hover:shadow-md disabled:hover:shadow-none
@@ -122,7 +122,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            EXECUTIVE SUMMARY
+            <span className="text-sm sm:text-base">EXECUTIVE SUMMARY</span>
           </>
         )}
       </button>

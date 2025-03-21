@@ -198,10 +198,10 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Cerca disciplinari..."
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3dcab1] focus:border-transparent"
+            className="w-full px-8 py-2.5 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3dcab1] focus:border-transparent"
           />
           <svg
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+            className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -219,7 +219,7 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
         {filteredDocuments.length > 0 ? (
           viewMode === 'grid' ? renderGridView() : renderListView()
         ) : (
-          <div className="text-gray-500 text-center py-8 bg-white rounded-lg shadow-sm">
+          <div className="text-gray-500 text-center py-6 sm:py-8 bg-white rounded-lg shadow-sm text-sm sm:text-base">
             {loading ? 'Caricamento disciplinari...' : searchTerm ? 'Nessun disciplinare trovato' : 'Nessun disciplinare disponibile'}
           </div>
         )}

@@ -298,7 +298,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
 
     return (
       <div className="w-full mx-auto">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           {/* File upload area */}
           <DragDropArea 
             onFileSelect={handleFileSelect} 
@@ -314,7 +314,7 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
               onChange={(e) => setOnlyCriteria(e.target.checked)}
               className="w-4 h-4 text-[#3dcab1] bg-gray-100 border-gray-300 rounded focus:ring-[#3dcab1] focus:ring-2"
             />
-            <label htmlFor="only-criteria-checkbox" className="ml-2 text-sm font-medium text-gray-700">
+            <label htmlFor="only-criteria-checkbox" className="ml-2 text-xs sm:text-sm font-medium text-gray-700">
               File con solo criteri
             </label>
           </div>
