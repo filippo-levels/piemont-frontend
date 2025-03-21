@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
-
 interface DocumentGridProps {
   onError?: (error: string) => void;
   onDocumentClick?: (fileName: string) => void;
@@ -81,11 +80,15 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/list_files_disciplinari`);
-      if (!response.ok) {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/list_files_disciplinari`, {
+        headers: {
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+        }
+      });
+      if (response.status !== 200) {
         throw new Error('Failed to fetch documents');
       }
-      const data = await response.json();
+      const data = response.data;
       setDocuments(data.files);
     } catch (error) {
       if (onError) {

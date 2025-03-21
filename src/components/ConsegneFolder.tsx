@@ -16,7 +16,11 @@ export default function ConsegneFolder({ fileName }: ConsegneFolderProps) {
       try {
         setLoading(true);
         // Sostituisci con l'endpoint effettivo per le consegne
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/consegne/${fileName}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/consegne/${fileName}`, {
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        });
         
         if (response.data && response.data.consegne) {
           setConsegne(response.data.consegne);

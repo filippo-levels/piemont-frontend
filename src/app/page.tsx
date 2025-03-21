@@ -23,7 +23,11 @@ export default function Home() {
     try {
       setLoading(true);
       // Puoi sostituire questa chiamata con l'endpoint effettivo per le statistiche
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/list_files_disciplinari`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/list_files_disciplinari`, {
+        headers: {
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+        }
+      });
       
       if (response.data && response.data.files) {
         // Calcola statistiche di base dai file disponibili

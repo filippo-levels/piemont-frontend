@@ -43,7 +43,12 @@ export default function DocumentPage() {
       const fileNameWithPdf = displayFileName.endsWith('.pdf') ? displayFileName : `${displayFileName}.pdf`;
       
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/search_criteri/${encodeURIComponent(fileNameWithPdf)}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/search_criteri/${encodeURIComponent(fileNameWithPdf)}`,
+        {
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        }
       );
       
       // Store raw response for debugging
@@ -96,7 +101,11 @@ export default function DocumentPage() {
         setLoading(true);
         setError(null);
         
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`, {
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        });
         
         // Handle the new response structure directly
         if (response.data && typeof response.data === 'object') {

@@ -88,7 +88,12 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         // Call criterias_extraction API
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/api/criterias_extraction`,
-          formData
+          formData,
+          {
+            headers: {
+              "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+            }
+          }
         );
 
         // Store raw response for debugging
@@ -164,7 +169,12 @@ const FileUploader = forwardRef<{ setFileFromExternal: (newFile: File) => void }
         // Call executive_summary API
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/api/executive_summary`,
-          formData
+          formData,
+          {
+            headers: {
+              "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+            }
+          }
         );
 
         // Store raw response for debugging

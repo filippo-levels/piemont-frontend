@@ -17,7 +17,11 @@ export default function CriteriaPage() {
     const fetchCriteria = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/get_criterias/${fileName}`, {
+          headers: {
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY
+          }
+        });
         
         if (response.data) {
           setCriteriaData(response.data);
