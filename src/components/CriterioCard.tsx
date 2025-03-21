@@ -23,7 +23,13 @@ const CriterioCard: React.FC<CriterioCardProps> = ({
   const [copySuccess, setCopySuccess] = useState(false);
   const [showFullTitle, setShowFullTitle] = useState(false);
   const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const titleRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+  
+  // Description character threshold for showing "Mostra di più"
+  const DESCRIPTION_THRESHOLD = 300;
   
   // Determine if we're using internal or external state for collapse
   const isExternalCollapse = toggleCollapse !== undefined && collapsed !== undefined;
@@ -36,6 +42,13 @@ const CriterioCard: React.FC<CriterioCardProps> = ({
       setIsTitleTruncated(titleRef.current.scrollWidth > titleRef.current.clientWidth);
     }
   }, [criterio.nome]);
+
+  // Check if description is long
+  useEffect(() => {
+    if (criterio.descrizione) {
+      setIsDescriptionTruncated(criterio.descrizione.length > DESCRIPTION_THRESHOLD);
+    }
+  }, [criterio.descrizione]);
 
   // Update internal collapse state when isAllExpanded changes
   useEffect(() => {
@@ -97,6 +110,19 @@ const CriterioCard: React.FC<CriterioCardProps> = ({
     if (isCollapsed) {
       handleToggleCollapse();
     }
+  };
+
+  const toggleDescription = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowFullDescription(!showFullDescription);
+  };
+
+  // Get the description to display based on truncation state
+  const getDisplayDescription = () => {
+    if (!isDescriptionTruncated || showFullDescription) {
+      return criterio.descrizione;
+    }
+    return criterio.descrizione.substring(0, DESCRIPTION_THRESHOLD) + "...";
   };
 
   return (
@@ -195,7 +221,17 @@ const CriterioCard: React.FC<CriterioCardProps> = ({
 
       {!isCollapsed && (
         <div className="relative">
-          <p className="text-gray-700 text-sm mb-4 leading-relaxed">{criterio.descrizione}</p>
+          <p ref={descriptionRef} className="text-gray-700 text-sm mb-2 leading-relaxed">
+            {getDisplayDescription()}
+          </p>
+          {isDescriptionTruncated && (
+            <button
+              onClick={toggleDescription}
+              className="text-blue-600 hover:text-blue-800 text-xs font-medium focus:outline-none transition-colors mt-1"
+            >
+              {showFullDescription ? "Mostra meno" : "Mostra di più"}
+            </button>
+          )}
         </div>
       )}
       

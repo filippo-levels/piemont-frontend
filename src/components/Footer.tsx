@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -8,7 +8,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">LEVELS OG</h3>
+            <Image
+              src="/images/logo levels.png"
+              alt="Levels OG Logo"
+              width={130}
+              height={120}
+              className="object-contain"
+            />
             <p className="text-gray-400 text-sm">
               Piattaforma per la gestione e l'analisi dei criteri tecnici.
             </p>
@@ -24,8 +30,6 @@ export default function Footer() {
             </p>
           </div>
         </div>
-        
-
       </div>
     </footer>
   );

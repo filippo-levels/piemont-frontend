@@ -17,12 +17,40 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
   showNewButton = true,
   hideTitle = false,
   smallerIcons = false,
-  viewMode = 'grid'
+  viewMode: propViewMode = 'grid'
 }, ref) => {
   const [documents, setDocuments] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredDocuments, setFilteredDocuments] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(propViewMode);
+
+  // Rileva se il dispositivo è mobile e imposta la visualizzazione di conseguenza
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
+      
+      // Se è mobile, forza sempre la visualizzazione a lista
+      if (mobile) {
+        setViewMode('list');
+      } else {
+        setViewMode(propViewMode);
+      }
+    };
+    
+    // Controlla all'avvio
+    checkIfMobile();
+    
+    // Aggiungi listener per il resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, [propViewMode]);
 
   // Espone la funzione fetchDocuments al componente padre
   useImperativeHandle(ref, () => ({
@@ -168,26 +196,54 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
             <h2 className="text-xl font-semibold text-gray-800">
               I tuoi disciplinari ({filteredDocuments.length})
             </h2>
-            <button
-              onClick={fetchDocuments}
-              className="px-4 py-2 bg-[#3dcab1] text-white rounded-lg hover:bg-[#3dcab1]/90 transition-colors flex items-center space-x-2"
-              disabled={loading}
-            >
-              <svg 
-                className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
+            <div className="flex items-center space-x-2">
+              {/* Mostra i pulsanti di cambio vista solo su desktop */}
+              {!isMobile && (
+                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    title="Vista griglia"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4 5v5h5V5H4zm11 0v5h5V5h-5zM4 16v5h5v-5H4zm11 0v5h5v-5h-5z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    title="Vista elenco"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              
+              {/* Pulsante aggiorna */}
+              <button
+                onClick={fetchDocuments}
+                className="p-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center space-x-1"
+                disabled={loading}
+                title="Aggiorna"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                />
-              </svg>
-              <span>{loading ? 'Caricamento...' : 'Aggiorna'}</span>
-            </button>
+                <svg 
+                  className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                <span className={isMobile ? "block" : "hidden"}>Aggiorna</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -216,14 +272,35 @@ const DocumentGrid = forwardRef<{ fetchDocuments: () => Promise<void> }, Documen
         </div>
         
         {/* Visualizzazione dei documenti */}
-        {filteredDocuments.length > 0 ? (
-          viewMode === 'grid' ? renderGridView() : renderListView()
-        ) : (
-          <div className="text-gray-500 text-center py-6 sm:py-8 bg-white rounded-lg shadow-sm text-sm sm:text-base">
-            {loading ? 'Caricamento disciplinari...' : searchTerm ? 'Nessun disciplinare trovato' : 'Nessun disciplinare disponibile'}
-          </div>
-        )}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {filteredDocuments.length > 0 ? (
+            viewMode === 'grid' && !isMobile ? renderGridView() : renderListView()
+          ) : (
+            <div className="text-gray-500 text-center py-6 sm:py-8 text-sm sm:text-base">
+              {loading ? 'Caricamento disciplinari...' : searchTerm ? 'Nessun disciplinare trovato' : 'Nessun disciplinare disponibile'}
+            </div>
+          )}
+        </div>
       </div>
+      
+      {/* Bottone di upload fuori dall'elenco */}
+      {showNewButton && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => {
+              // Implementazione dell'upload o navigazione a pagina di upload
+              if (onDocumentClick) onDocumentClick("new");
+            }}
+            className="flex items-center justify-center space-x-2 px-4 py-3 bg-[#3dcab1] text-white rounded-lg shadow-md hover:bg-[#3dcab1]/90 transition-all"
+            aria-label="Carica nuovo disciplinare"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Carica nuovo disciplinare</span>
+          </button>
+        </div>
+      )}
     </>
   );
 });

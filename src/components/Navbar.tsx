@@ -24,15 +24,13 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-14 sm:h-16 md:h-24">
           {/* Logo Levels OG a sinistra - visibile solo su desktop */}
           <div className="hidden md:block">
-            <a href="https://levelstech.it" target="_blank" rel="noopener noreferrer">
               <Image
-                src="/images/levels_og_logo.png"
+                src="/images/logo levels.png"
                 alt="Levels OG Logo"
-                width={120}
+                width={130}
                 height={120}
                 className="object-contain"
               />
-            </a>
           </div>
           
           {/* Logo Piemontecnica al centro */}

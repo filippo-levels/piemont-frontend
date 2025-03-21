@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import FileUploader from "@/app/upload/FileUploader";
 import CriteriSimiliViewer from "@/app/upload/CriteriSimiliViewer";
 import ExecutiveSummary from "@/app/upload/ExecutiveSummary";
-import { generatePDF } from "../../utils/pdfGenerator";
 import { clearAllJsonDebugData } from "./components/JsonDebugViewer";
 
 const STORAGE_KEY = 'uploadAnalysisResult';
@@ -86,12 +85,6 @@ export default function UploadPage() {
     window.location.reload();
   };
 
-  const handleExportToPDF = () => {
-    if (jsonResult) {
-      generatePDF([jsonResult], executiveSummary);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pt-16 sm:pt-24">
@@ -137,10 +130,10 @@ export default function UploadPage() {
             />
           </div>
 
-          {/* View Selector Tabs with Download Button (only show if we have results) */}
+          {/* View Selector Tabs (only show if we have results) */}
           {(jsonResult || executiveSummary) && (
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-gray-200 pb-2 mb-4">
-              <div className="flex flex-wrap mb-3 sm:mb-0">
+              <div className="flex flex-wrap">
                 {jsonResult && (
                   <button
                     onClick={() => setActiveView('criteri')}
@@ -166,20 +159,6 @@ export default function UploadPage() {
                   </button>
                 )}
               </div>
-              
-              {/* Download PDF button - common for both views */}
-              {jsonResult && (
-                <button
-                  onClick={handleExportToPDF}
-                  className="px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 w-fit"
-                  title="Scarica PDF con tutti i criteri"
-                >
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Scarica PDF
-                </button>
-              )}
             </div>
           )}
 

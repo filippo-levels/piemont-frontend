@@ -26,30 +26,75 @@ const JsonDebugViewer: React.FC<JsonDebugViewerProps> = ({ type, jsonData }) => 
     }
   }, [jsonData, storageKey, type]);
   
-  // Button color varies by type
-  const buttonBgColor = type === 'criteri' ? 'bg-yellow-100 hover:bg-yellow-200' : 'bg-blue-100 hover:bg-blue-200';
+  // Button styles vary by type
+  const getButtonStyles = () => {
+    if (type === 'criteri') {
+      return {
+        bg: showJson ? 'bg-yellow-100 border-yellow-300' : 'bg-white border-yellow-200',
+        hover: 'hover:bg-yellow-50',
+        text: showJson ? 'text-yellow-700' : 'text-yellow-600',
+        icon: 'text-yellow-500'
+      };
+    } else {
+      return {
+        bg: showJson ? 'bg-blue-100 border-blue-300' : 'bg-white border-blue-200',
+        hover: 'hover:bg-blue-50',
+        text: showJson ? 'text-blue-700' : 'text-blue-600',
+        icon: 'text-blue-500'
+      };
+    }
+  };
+  
+  const styles = getButtonStyles();
   
   // Button text varies by type
   const buttonText = type === 'criteri' 
     ? (showJson ? "Nascondi JSON Criteri" : "Mostra JSON Criteri") 
     : (showJson ? "Nascondi JSON Executive" : "Mostra JSON Executive");
   
+  const getToggleIcon = () => {
+    if (showJson) {
+      return (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      );
+    } else {
+      return (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      );
+    }
+  };
+  
   if (!jsonData) return null;
   
   return (
-    <div className="mt-2">
+    <div className="mt-3">
       <button
         onClick={() => setShowJson(!showJson)}
-        className={`px-3 py-2 text-sm font-medium text-gray-600 ${buttonBgColor} rounded-lg transition-colors flex items-center gap-1`}
+        className={`px-4 py-2 text-sm font-medium ${styles.text} ${styles.bg} ${styles.hover} border rounded-lg transition-all flex items-center gap-2 shadow-sm`}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-5 h-5 ${styles.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
         </svg>
         {buttonText}
+        <span className="ml-auto">{getToggleIcon()}</span>
       </button>
       
       {showJson && (
-        <div className="mt-2 p-3 bg-gray-800 text-green-400 rounded-lg overflow-auto max-h-96 font-mono text-xs">
+        <div className="mt-3 p-4 bg-gray-900 text-green-400 rounded-lg overflow-auto max-h-[450px] font-mono text-xs shadow-lg border border-gray-700 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+          <div className="sticky top-0 flex justify-end mb-2">
+            <button
+              onClick={() => setShowJson(false)}
+              className="p-1 bg-gray-800 text-gray-400 hover:text-white rounded-md"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <pre>{JSON.stringify(jsonData, null, 2)}</pre>
         </div>
       )}
